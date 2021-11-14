@@ -44,6 +44,21 @@ def gen_mri_mtx_binary_label(data_dir, label_path):
     return mri_mtx
 
 
+def standardization(X):
+    """
+    Perform Z-score standardization to input data. x' = (x - μ)／σ
+
+    Inputs
+        X: Input data as a form of numpy matrix. Each row represents one data element.
+
+    Return
+        Data after standardization.
+    """
+    mu = np.mean(X, axis=0)
+    sigma = np.std(X, axis=0)
+    return (X - mu) / sigma
+
+
 if __name__ == "__main__":
     data_dir = "dataset/image"
     label_path = "dataset/label.csv"
