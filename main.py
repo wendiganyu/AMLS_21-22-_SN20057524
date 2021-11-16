@@ -45,8 +45,8 @@ def pca_SVM_binary(X, Y, k):
     # ------------------------------------------------------------------------------------------------------------------
     # Do PCA with x_train and x_test.
     print("I am doing PCA!")
-    x_train, _, _, _ = FeatureExtraction.PCAFeatureExtraction(x_train, k)
-    x_train = np.array(x_train)
+    x_train, _, Variance, _ = FeatureExtraction.PCAFeatureExtraction(x_train, k)
+    print("Variance after PCA:",Variance)
     print("x_train after PCA:\n", x_train.shape, x_train)
 
     print("Train PCA model done!")
@@ -101,6 +101,7 @@ if __name__ == "__main__":
 
     # Perform data standardization
     # Check if the data matrix already saved as file.
+
     standard_data_file_name = "Data_After_Standardization.npy"
     if os.path.exists(standard_data_file_name):
         X = np.load(standard_data_file_name)
@@ -113,7 +114,7 @@ if __name__ == "__main__":
     Y = mri_mtx[:, -1]
 
     # Set the number of k components in PCA.
-    k = 100
+    k = 2400
 
     pca_SVM_binary(X, Y, k)
 

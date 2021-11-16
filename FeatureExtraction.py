@@ -44,3 +44,4 @@ def PCAFeatureExtraction(X, k):
     Variance = pca.explained_variance_ratio_
     Vcomp = pca.components_
     return pca_data, SValue, Variance, Vcomp
+
