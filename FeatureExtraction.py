@@ -1,4 +1,7 @@
+import os.path
+
 from sklearn.decomposition import PCA
+import pickle as pk
 
 
 
@@ -9,7 +12,7 @@ def PCAFeatureExtraction(X, k):
     of outliers, with the help of sklearn functions.
 
     Inputs
-        X: dataset;
+        X: dataset without label information;
         k: number of components.
 
     Return
@@ -22,10 +25,19 @@ def PCAFeatureExtraction(X, k):
 
     # Built-in function for PCA,
     # where n_clusters is the number of clusters.
-    pca = PCA(n_components=k)
 
-    # Fit the algorithm with dataset
-    pca.fit(X)
+    # Check if there are already-saved pca models to load.
+    pca_model_name = "pca_" + str(k) + ".pkl"
+    if os.path.exists(pca_model_name):
+        print("Yes you are loading pca model!")
+        pca = pk.load(open(pca_model_name, 'rb'))
+    else:
+        pca = PCA(n_components=k)
+        # Fit the algorithm with dataset
+        pca.fit(X)
+
+        # Save the trained PCA model to a file.
+        pk.dump(pca, open(pca_model_name, "wb"))
 
     pca_data = pca.transform(X)
     SValue = pca.singular_values_

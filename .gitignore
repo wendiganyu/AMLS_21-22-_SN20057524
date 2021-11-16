@@ -1,3 +1,5 @@
 /dataset/
 /MRI_Matrix.txt
 /MRI_Matrix.npy
+/Data_After_Standardization.npy
+/pca_100.pkl
