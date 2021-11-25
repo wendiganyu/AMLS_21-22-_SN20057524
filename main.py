@@ -96,9 +96,6 @@ if __name__ == "__main__":
         np.save("MRI_Matrix.npy", mri_mtx)
     # print(mri_mtx.shape)
 
-    # Extract data part from the whole matrix.
-    X = np.delete(mri_mtx, 262144, 1)
-
     # Perform data standardization
     # Check if the data matrix already saved as file.
 
@@ -106,6 +103,9 @@ if __name__ == "__main__":
     if os.path.exists(standard_data_file_name):
         X = np.load(standard_data_file_name)
     else:
+        # Extract data part from the whole matrix.
+        X = np.delete(mri_mtx, 262144, 1)
+
         X = PreProcessing.standardization(X)
         np.save(standard_data_file_name, X)
     print(X.shape)
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     Y = mri_mtx[:, -1]
 
     # Set the number of k components in PCA.
-    k = 2400
+    k = 100
 
     pca_SVM_binary(X, Y, k)
 
