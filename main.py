@@ -13,11 +13,6 @@ import pickle as pk
 import PreProcessing
 import FeatureExtraction
 
-data_dir = "dataset/image"  # Path of dataset directory
-label_path = "dataset/label.csv"  # Path of dataset's label file
-
-# Path of the .npy file which saves the dataset and its binary labels' information as a matrix.
-original_mtx_path = "MRI_Matrix.npy"
 
 
 def pca_SVM_binary(X, Y, k):
@@ -87,14 +82,18 @@ def pca_SVM_binary(X, Y, k):
 
 
 if __name__ == "__main__":
+    data_dir = "dataset/image"  # Path of dataset directory
+    label_path = "dataset/label.csv"  # Path of dataset's label file
+
+    # Path of the .npy file which saves the dataset and its labels' information as a matrix.
+    binary_mtx_path = "MRI_Matrix_Binary.npy"
 
     # Check if the data matrix already saved as file.
-    if os.path.exists(original_mtx_path):
-        mri_mtx = np.load(original_mtx_path)
+    if os.path.exists(binary_mtx_path):
+        mri_mtx_binary = np.load(binary_mtx_path)
     else:
-        mri_mtx = PreProcessing.gen_mri_mtx_binary_label(data_dir, label_path)
-        np.save("MRI_Matrix.npy", mri_mtx)
-    # print(mri_mtx.shape)
+        mri_mtx_binary = PreProcessing.gen_mri_mtx_with_label(data_dir, label_path, isMul=False)
+        np.save(binary_mtx_path, mri_mtx_binary)
 
     # Perform data standardization
     # Check if the data matrix already saved as file.
@@ -104,14 +103,14 @@ if __name__ == "__main__":
         X = np.load(standard_data_file_name)
     else:
         # Extract data part from the whole matrix.
-        X = np.delete(mri_mtx, 262144, 1)
+        X = np.delete(mri_mtx_binary, 262144, 1)
 
         X = PreProcessing.standardization(X)
         np.save(standard_data_file_name, X)
     print(X.shape)
 
     # Extract label part from the whole matrix.
-    Y = mri_mtx[:, -1]
+    Y = mri_mtx_binary[:, -1]
 
     # Set the number of k components in PCA.
     k = 100

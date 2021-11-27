@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 
-def gen_mri_mtx_binary_label(data_dir, label_path):
+def gen_mri_mtx_with_label(data_dir, label_path, isMul):
     """
     Transform the 3000 raw .jpg images in MRI dataset combined with
     their binary label data indicating the existence of brain tumor or not
@@ -30,10 +30,19 @@ def gen_mri_mtx_binary_label(data_dir, label_path):
         img = cv2.imread(full_path, cv2.IMREAD_GRAYSCALE)
 
         # Determine this image's class
-        if df.loc[fileName, "label"] == "no_tumor":
+        label_val = df.loc[fileName, "label"]
+        if label_val == "no_tumor":
             img_class = 0  # 0: this img indicates no tumor, vice versa.
         else:
-            img_class = 1
+            if isMul:
+                if label_val == "meningioma_tumor":
+                    img_class = 1  # 1 for meningioma tumor
+                elif label_val == "glioma_tumor":
+                    img_class = 2  # 2 for glioma tumor
+                else:
+                    img_class = 3  # 3 for pituitary_tumor
+            else:
+                img_class = 1
 
         # Convert original image matrix to a row vector appended with its class.
         img_row_vec = img.flatten()
@@ -62,12 +71,33 @@ def standardization(X):
 if __name__ == "__main__":
     data_dir = "dataset/image"
     label_path = "dataset/label.csv"
-    mtx_file_name = "MRI_Matrix.npy"
 
-    # Check if the data matrix already saved as file.
-    if os.path.exists(mtx_file_name):
-        mri_mtx = np.load(mtx_file_name)
+    # ------------------------------------------------------------------------------------------------------------------
+    # Generate dataset combining data and binary labels.
+
+    # binary_mtx_file_name = "MRI_Matrix_Binary.npy"
+    #
+    # # Check if the data matrix already saved as file.
+    # if os.path.exists(binary_mtx_file_name):
+    #     binary_mri_mtx = np.load(binary_mtx_file_name)
+    # else:
+    #     binary_mri_mtx = gen_mri_mtx_with_label(data_dir, label_path, isMul=False)
+    #     np.save(binary_mtx_file_name, binary_mri_mtx)
+
+    # print(mri_mtx.shape)
+    # ------------------------------------------------------------------------------------------------------------------
+
+    # Generate dataset combining data and multiple labels.
+    mul_mtx_file_name = "MRI_Matrix_Mul.npy"
+
+    if os.path.exists(mul_mtx_file_name):
+        mul_mri_mtx = np.load(mul_mtx_file_name)
     else:
-        mri_mtx = gen_mri_mtx_binary_label(data_dir, label_path)
-        np.save(mtx_file_name, mri_mtx)
-    print(mri_mtx.shape)
+        mul_mri_mtx = gen_mri_mtx_with_label(data_dir, label_path, isMul=True)
+        np.save(mul_mtx_file_name, mul_mri_mtx)
+
+    Y = mul_mri_mtx[:, -1]
+
+    # from IPython.display import display
+    # display(Y[100:1000])
+

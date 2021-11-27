@@ -218,15 +218,15 @@ if __name__ == "__main__":
     label_path = "dataset/label.csv"  # Path of dataset's label file
 
     # Path of the .npy file which saves the dataset and its binary labels' information as a matrix.
-    original_mtx_path = "MRI_Matrix.npy"
-    mri_mtx = np.load(original_mtx_path)
+    original_mtx_path = "MRI_Matrix_Binary.npy"
+    mri_mtx_binary = np.load(original_mtx_path)
 
-    X = np.delete(mri_mtx, 262144, 1)
+    X = np.delete(mri_mtx_binary, 262144, 1)
 
     # Reformat X to 3000 * 512 *512.
     X = X.reshape(3000, 512, 512)
 
-    Y = mri_mtx[:, -1]
+    Y = mri_mtx_binary[:, -1]
 
     x_train, x_valid, y_train, y_valid = train_test_split(X, Y, test_size=0.20, random_state=3)
 

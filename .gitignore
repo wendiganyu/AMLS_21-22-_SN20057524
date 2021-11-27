@@ -1,6 +1,7 @@
 /dataset/
 /MRI_Matrix.txt
-/MRI_Matrix.npy
+/MRI_Matrix_Binary.npy
 /Data_After_Standardization.npy
 /pca_100.pkl
 /pca_2400.pkl
+/MRI_Matrix_Mul.npy
