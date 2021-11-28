@@ -5,6 +5,7 @@ CNN is used in binary and multiple classification tasks of MRI images.
 # PyTorch packages
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 
@@ -13,6 +14,7 @@ from sklearn.model_selection import train_test_split
 
 # Progress bar
 from tqdm.auto import tqdm
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Construct dataset.
@@ -59,6 +61,7 @@ def GetTorchDataLoader(dataset, batch_size):
         PyTorch data loader.
     """
     # You may adjust the parameter num_workers according to the CPU cores number of your computer.
+    # Bugs appear when num_workers>0 using multi cores on my computer. So I use num_workers = 0.
     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=0)
 
     return data_loader
@@ -68,65 +71,117 @@ def GetTorchDataLoader(dataset, batch_size):
 # Construct CNN.
 # The feature maps must be flattened into a vector as input to last fully connected layer.
 
-class CNN_Binary(nn.Module):
-    def __init__(self):
-        super(CNN_Binary, self).__init__()
+class CNN(nn.Module):
+    def __init__(self, is_mul):
+        super(CNN, self).__init__()
 
         # Each MRI image is (512,512) size.
         self.cnn_layer = nn.Sequential(
             # Conv2d(in_channels, out_channels, kernel_size, stride, padding)
-            nn.Conv2d(1, 16, 3, 1, 1),  # Now it's 16 * 512 * 512
-            nn.BatchNorm2d(16),  # Normalize
+            # MaxPool2D(kernel_size, stride, padding)
+            nn.Conv2d(1, 64, 3, 1, 1),  # Now it's 64 * 512 * 512
+            # nn.BatchNorm2d(64),  # Normalize
             nn.ReLU(),
-            nn.MaxPool2d(4, 4, 0),  # 16 * 128 * 128
+            # nn.MaxPool2d(4, 4, 0),  #
 
-            nn.Conv2d(16, 16, 3, 1, 1),  # 16 * 128 * 128
-            nn.BatchNorm2d(16),
+            nn.Conv2d(64, 64, 3, 1, 1),  # Now it's 64 * 512 * 512
+            # nn.BatchNorm2d(64),  # Normalize
             nn.ReLU(),
-            nn.MaxPool2d(4, 4, 0)  # 16 * 32 * 32
 
-            # nn.Conv2d(128, 128, 3, 1, 0),  # 128 * 32 * 32
-            # nn.BatchNorm2d(128),
-            # nn.ReLU(),
-            # nn.MaxPool2d(2, 2, 0),  # 128 * 16 * 16
+            nn.MaxPool2d(4, 4, 0),  # 64 * 128 * 128
 
-            # nn.Conv2d(256, 512, 3, 1, 0),  # 512 * 16 * 16
-            # nn.BatchNorm2d(512),
-            # nn.ReLU(),
-            # nn.MaxPool2d(2, 2, 0),  # 512 * 8 * 8
-            #
-            # nn.Conv2d(512, 512, 3, 1, 0),  # 512 * 8 * 8
-            # nn.BatchNorm2d(512),
-            # nn.ReLU(),
-            # nn.MaxPool2d(2, 2, 0)  # 512 * 4 * 4
+            nn.Conv2d(64, 128, 3, 1, 1),  # Now it's 128 * 128 * 128
+            # nn.BatchNorm2d(128),  # Normalize
+            nn.ReLU(),
+
+            nn.Conv2d(128, 128, 3, 1, 1),  # Now it's 128 * 128 * 128
+            # nn.BatchNorm2d(128),  # Normalize
+            nn.ReLU(),
+
+            nn.MaxPool2d(2, 2, 0),  # 128 * 64 * 64
+
+            nn.Conv2d(128, 256, 3, 1, 1),  # Now it's 256 * 64 * 64
+            # nn.BatchNorm2d(256),  # Normalize
+            nn.ReLU(),
+
+            nn.Conv2d(256, 256, 3, 1, 1),  # Now it's 256 * 64 * 64
+            # nn.BatchNorm2d(256),  # Normalize
+            nn.ReLU(),
+
+            nn.Conv2d(256, 256, 3, 1, 1),  # Now it's 256 * 64 * 64
+            # nn.BatchNorm2d(256),  # Normalize
+            nn.ReLU(),
+
+            nn.MaxPool2d(2, 2, 0),  # 256 * 32 * 32
+
+            nn.Conv2d(256, 512, 3, 1, 1),  # Now it's 512 * 32 * 32
+            # nn.BatchNorm2d(512),  # Normalize
+            nn.ReLU(),
+
+            nn.Conv2d(512, 512, 3, 1, 1),  # Now it's 512 * 32 * 32
+            # nn.BatchNorm2d(512),  # Normalize
+            nn.ReLU(),
+
+            nn.Conv2d(512, 512, 3, 1, 1),  # Now it's 512 * 32 * 32
+            # nn.BatchNorm2d(512),  # Normalize
+            nn.ReLU(),
+
+            nn.MaxPool2d(2, 2, 0),  # 512 * 16 * 16
+
+            nn.Conv2d(512, 512, 3, 1, 1),  # Now it's 512 * 16 * 16
+            # nn.BatchNorm2d(512),  # Normalize
+            nn.ReLU(),
+
+            nn.Conv2d(512, 512, 3, 1, 1),  # Now it's 512 * 16 * 16
+            # nn.BatchNorm2d(512),  # Normalize
+            nn.ReLU(),
+
+            nn.Conv2d(512, 512, 3, 1, 1),  # Now it's 512 * 16 * 16
+            # nn.BatchNorm2d(512),  # Normalize
+            nn.ReLU(),
+
+            nn.MaxPool2d(2, 2, 0),  # 512 * 8 * 8
 
         )
 
-        self.fully_conn = nn.Sequential(
-            nn.Linear(16 * 32 * 32, 2)
-            # nn.ReLU(),
-            # nn.Linear(1024, 256),
-            # nn.ReLU(),
-            # nn.Linear(256, 2)
-        )
+        if is_mul:
+            self.fully_conn = nn.Sequential(
+                nn.Linear(512 * 8 * 8, 4),
+                nn.BatchNorm1d(4)
+
+                # nn.ReLU(),
+                # nn.Linear(1024, 256),
+                # nn.ReLU(),
+                # nn.Linear(256, 4)
+            )
+        else:
+            self.fully_conn = nn.Sequential(
+                nn.Linear(512 * 8 * 8, 2),
+                nn.BatchNorm1d(2)
+                # nn.ReLU(),
+                # nn.Linear(1024, 256),
+                # nn.ReLU(),
+                # nn.Linear(256, 2)
+            )
 
     def forward(self, x):
         x = self.cnn_layer(x)
         x = x.flatten(1)
         x = self.fully_conn(x)
-        return x
+        # return x
+        return F.log_softmax(x, dim=1)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Training and Validation process.
-def train_valid_model(train_loader, valid_loader, epoch_num):
+def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
     # ------------------------------------------------------------------------------------------------------------------
     # Training process.
     device = torch.device("cpu")
     # device = "cpu"  # Train the model on my computer with cpu. It can be adjusted to "cuda" if using gpu.
 
     # Initialize model and put it on cpu.
-    model = CNN_Binary()
+    model = CNN(is_mul=is_mul)
     model.to(device)
 
     # Use cross entropy as the loss function.
@@ -217,28 +272,40 @@ if __name__ == "__main__":
     data_dir = "dataset/image"  # Path of dataset directory
     label_path = "dataset/label.csv"  # Path of dataset's label file
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # Binary classification
+
     # Path of the .npy file which saves the dataset and its binary labels' information as a matrix.
-    original_mtx_path = "MRI_Matrix_Binary.npy"
-    mri_mtx_binary = np.load(original_mtx_path)
+    # binary_mtx_path = "MRI_Matrix_Binary.npy"
+    # mri_mtx_binary = np.load(binary_mtx_path)
+    #
+    # X = np.delete(mri_mtx_binary, 262144, 1)
+    #
+    # # Reformat X to 3000 * 512 *512.
+    # X = X.reshape(3000, 512, 512)
+    #
+    # Y = mri_mtx_binary[:, -1]
+    # ------------------------------------------------------------------------------------------------------------------
+    # Multiple classification
 
-    X = np.delete(mri_mtx_binary, 262144, 1)
+    mul_mtx_path = "MRI_Matrix_Mul.npy"
+    mri_mtx_mul = np.load(mul_mtx_path)
 
-    # Reformat X to 3000 * 512 *512.
+    X = np.delete(mri_mtx_mul, 262144, 1)
     X = X.reshape(3000, 512, 512)
 
-    Y = mri_mtx_binary[:, -1]
+    Y = mri_mtx_mul[:, -1]
+    # ------------------------------------------------------------------------------------------------------------------
 
     x_train, x_valid, y_train, y_valid = train_test_split(X, Y, test_size=0.20, random_state=3)
 
     # Convert into torch data loaders.
 
-    transform = transforms.ToTensor()
-
     torch_train_data = GetTorchData(x_train, y_train)
     torch_valid_data = GetTorchData(x_valid, y_valid)
 
     # Set batch size which will be used in training, validation and testing.
-    batch_size = 100
+    batch_size = 64
 
     torch_train_loader = GetTorchDataLoader(torch_train_data, batch_size)
     torch_valid_loader = GetTorchDataLoader(torch_valid_data, batch_size)
@@ -252,4 +319,4 @@ if __name__ == "__main__":
     #     plt.show()
     # -----------------------------------------------------------------------------------------------------------------
 
-    train_valid_model(torch_train_loader, torch_valid_loader, epoch_num)
+    train_valid_model(torch_train_loader, torch_valid_loader, epoch_num, is_mul=True)
