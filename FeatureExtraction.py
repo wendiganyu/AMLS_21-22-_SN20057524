@@ -27,7 +27,7 @@ def PCAFeatureExtraction(X, k):
     # where n_clusters is the number of clusters.
 
     # Check if there are already-saved pca models to load.
-    pca_model_name = "pca_" + str(k) + ".pkl"
+    pca_model_name = "tmp/"+"pca_" + str(k) + ".pkl"
     if os.path.exists(pca_model_name):
         print("Yes you are loading pca model!")
         pca = pk.load(open(pca_model_name, 'rb'))
@@ -44,4 +44,6 @@ def PCAFeatureExtraction(X, k):
     Variance = pca.explained_variance_ratio_
     Vcomp = pca.components_
     return pca_data, SValue, Variance, Vcomp
+
+
 

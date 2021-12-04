@@ -62,7 +62,7 @@ def GetTorchDataLoader(dataset, batch_size):
     """
     # You may adjust the parameter num_workers according to the CPU cores number of your computer.
     # Bugs appear when num_workers>0 using multi cores on my computer. So I use num_workers = 0.
-    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=0)
+    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4)
 
     return data_loader
 
@@ -73,7 +73,7 @@ def GetTorchDataLoader(dataset, batch_size):
 
 class CNN(nn.Module):
     def __init__(self, is_mul):
-        super(CNN, self).__init__()
+        super().__init__()
 
         # Each MRI image is (512,512) size.
         self.cnn_layer = nn.Sequential(
@@ -305,7 +305,7 @@ if __name__ == "__main__":
     torch_valid_data = GetTorchData(x_valid, y_valid)
 
     # Set batch size which will be used in training, validation and testing.
-    batch_size = 64
+    batch_size = 2
 
     torch_train_loader = GetTorchDataLoader(torch_train_data, batch_size)
     torch_valid_loader = GetTorchDataLoader(torch_valid_data, batch_size)

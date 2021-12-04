@@ -2,16 +2,22 @@ import os
 import cv2
 import pandas as pd
 import numpy as np
+from sklearn.model_selection import train_test_split
+import pywt
 
 
-def gen_mri_mtx_with_label(data_dir, label_path, isMul):
+
+def gen_mri_mtx_with_label(data_dir, label_path, is_mul):
     """
     Transform the 3000 raw .jpg images in MRI dataset combined with
     their binary label data indicating the existence of brain tumor or not
     together to a big numpy matrix we could use in program processing.
 
     Input
-        dir：location of the dataset directory
+        data_dir：location of the dataset directory
+        label_path: location of label file of the dataset.
+        is_mul: Generate the matrix differently depending whether it will be used in binary or multiple
+                classification tasks.
     Return
         mri_mtx: MRI dataset matrix. Each image is represented as
                  a row of 262145 * 1. The first 262144 (512 * 512)
@@ -34,7 +40,7 @@ def gen_mri_mtx_with_label(data_dir, label_path, isMul):
         if label_val == "no_tumor":
             img_class = 0  # 0: this img indicates no tumor, vice versa.
         else:
-            if isMul:
+            if is_mul:
                 if label_val == "meningioma_tumor":
                     img_class = 1  # 1 for meningioma tumor
                 elif label_val == "glioma_tumor":
@@ -53,6 +59,53 @@ def gen_mri_mtx_with_label(data_dir, label_path, isMul):
     return mri_mtx
 
 
+def gen_train_test_set(is_mul, data_dir="dataset/image", label_path="dataset/label.csv", random_state=0, test_size=0.2):
+    """
+    Generate the train set and test set.
+    The generated train set and test set are different depending on whether they will be used into binary or multiple
+    classification task.
+    Some temporary files will be output by the function to store the datasets in the processing.
+
+    Input
+        data_dir：location of the dataset directory
+        label_path: location of label file of the dataset.
+        is_mul: Generate the sets differently depending whether they will be used in binary or multiple
+                classification tasks.
+        random_state: random_state used in the function sklearn.model_selection.train_test_split.
+        test_szie: test_size used in the function sklearn.model_selection.train_test_split.
+
+    Return
+        x_train: Preprocessed brain MRI images as inputs to train a model.
+                 Each data is of the form of a one-dimentional vector.
+        x_valid: Preprocessed brain MRI images to validate the classification accuracy of the trained model.
+                    The preprocessing of x_valid set cannot use any information of x_train or y_train.
+                    Each data is of the form of a one-dimentional vector.
+        y_train: Label information of x_train as inputs to train a model.
+        y_valid: Label information of x_valid validate the classification accuracy of the trained model.
+    """
+    if (is_mul):
+        mtx_file_name = "tmp/MRI_Matrix_Mul.npy"
+    else:
+        mtx_file_name = "tmp/MRI_Matrix_Binary.npy"
+
+    if os.path.exists(mtx_file_name):
+        mri_mtx = np.load(mtx_file_name)
+    else:
+        mri_mtx = gen_mri_mtx_with_label(data_dir, label_path, is_mul=is_mul)
+        np.save(mtx_file_name, mri_mtx)
+
+    # Split X and Y.
+    Y = mri_mtx[:, -1]
+    mri_mtx = np.delete(mri_mtx, 262144, 1)
+
+    # Divide train set and test set.
+    x_train, x_valid, y_train, y_valid = train_test_split(mri_mtx, Y, test_size=test_size, random_state=random_state)
+
+    return x_train, x_valid, y_train, y_valid
+
+
+
+
 def standardization(X):
     """
     Perform Z-score standardization to input data. x' = (x - μ)／σ
@@ -67,37 +120,11 @@ def standardization(X):
     sigma = np.std(X, axis=0)
     return (X - mu) / sigma
 
+def waveletTransform():
+    return
+
+
 
 if __name__ == "__main__":
-    data_dir = "dataset/image"
-    label_path = "dataset/label.csv"
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # Generate dataset combining data and binary labels.
-
-    # binary_mtx_file_name = "MRI_Matrix_Binary.npy"
-    #
-    # # Check if the data matrix already saved as file.
-    # if os.path.exists(binary_mtx_file_name):
-    #     binary_mri_mtx = np.load(binary_mtx_file_name)
-    # else:
-    #     binary_mri_mtx = gen_mri_mtx_with_label(data_dir, label_path, isMul=False)
-    #     np.save(binary_mtx_file_name, binary_mri_mtx)
-
-    # print(mri_mtx.shape)
-    # ------------------------------------------------------------------------------------------------------------------
-
-    # Generate dataset combining data and multiple labels.
-    mul_mtx_file_name = "MRI_Matrix_Mul.npy"
-
-    if os.path.exists(mul_mtx_file_name):
-        mul_mri_mtx = np.load(mul_mtx_file_name)
-    else:
-        mul_mri_mtx = gen_mri_mtx_with_label(data_dir, label_path, isMul=True)
-        np.save(mul_mtx_file_name, mul_mri_mtx)
-
-    Y = mul_mri_mtx[:, -1]
-
-    # from IPython.display import display
-    # display(Y[100:1000])
-
+    mri_mtx = np.load("MRI_Matrix_Binary.npy")
+    np.save("tmp/MRI_Matrix_Binary.npy", mri_mtx)

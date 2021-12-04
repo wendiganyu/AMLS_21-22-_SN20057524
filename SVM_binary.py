@@ -1,7 +1,3 @@
-"""
-Main Python file which calls other modules in this directory to realise a whole process from loading original dataset
-to outputting the classification accuracy.
-"""
 from sklearn import svm
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
@@ -13,20 +9,17 @@ import pickle as pk
 import PreProcessing
 import FeatureExtraction
 
-
-
-def pca_SVM_binary(X, Y, k):
+def SVM_binary(x_train, y_train,  x_valid, y_valid):
     """
-    First do feature extraction of the input dataset using PCA.
-    Then classify them binary with SVM.
+    First take the train data set and valid data set as inputs.
+    Then classify them binary with SVM. Print the information related to classification accuracy.
 
     Inputs:
-        X: brain MRI dataset as the form of a numpy matrix 3000 * 262144.
-                Each row represents an image data point.
-        Y: label information of the dataset. 0-no tumor. 1-tumor.
-        k: number of components of PCA.
-
-    Return:
+        x_train: Preprocessed brain MRI images as inputs to train a model.
+        y_train: Label information of x_train as inputs to train a model.
+        x_valid: Preprocessed brain MRI images to validate the classification accuracy of the trained model.
+                    The preprocessing of x_valid set cannot use any information of x_train or y_train.
+        y_valid: Label information of x_valid validate the classification accuracy of the trained model.
 
     """
     # ------------------------------------------------------------------------------------------------------------------
@@ -79,42 +72,3 @@ def pca_SVM_binary(X, Y, k):
     print("The actual data is:")
     print(np.array(y_test))
     print(f"The model is {accuracy_score(y_pred, y_test) * 100}% accurate")
-
-
-if __name__ == "__main__":
-    data_dir = "dataset/image"  # Path of dataset directory
-    label_path = "dataset/label.csv"  # Path of dataset's label file
-
-    # Path of the .npy file which saves the dataset and its labels' information as a matrix.
-    binary_mtx_path = "MRI_Matrix_Binary.npy"
-
-    # Check if the data matrix already saved as file.
-    if os.path.exists(binary_mtx_path):
-        mri_mtx_binary = np.load(binary_mtx_path)
-    else:
-        mri_mtx_binary = PreProcessing.gen_mri_mtx_with_label(data_dir, label_path, is_mul=False)
-        np.save(binary_mtx_path, mri_mtx_binary)
-
-    # Perform data standardization
-    # Check if the data matrix already saved as file.
-
-    standard_data_file_name = "Data_After_Standardization.npy"
-    if os.path.exists(standard_data_file_name):
-        X = np.load(standard_data_file_name)
-    else:
-        # Extract data part from the whole matrix.
-        X = np.delete(mri_mtx_binary, 262144, 1)
-
-        X = PreProcessing.standardization(X)
-        np.save(standard_data_file_name, X)
-    print(X.shape)
-
-    # Extract label part from the whole matrix.
-    Y = mri_mtx_binary[:, -1]
-
-    # Set the number of k components in PCA.
-    k = 100
-
-    pca_SVM_binary(X, Y, k)
-
-
