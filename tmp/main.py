@@ -82,11 +82,11 @@ def pca_SVM_binary(X, Y, k):
 
 
 if __name__ == "__main__":
-    data_dir = "dataset/image"  # Path of dataset directory
-    label_path = "dataset/label.csv"  # Path of dataset's label file
+    data_dir = "../dataset/image"  # Path of dataset directory
+    label_path = "../dataset/label.csv"  # Path of dataset's label file
 
     # Path of the .npy file which saves the dataset and its labels' information as a matrix.
-    binary_mtx_path = "MRI_Matrix_Binary.npy"
+    binary_mtx_path = "../MRI_Matrix_Binary.npy"
 
     # Check if the data matrix already saved as file.
     if os.path.exists(binary_mtx_path):
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     # Perform data standardization
     # Check if the data matrix already saved as file.
 
-    standard_data_file_name = "Data_After_Standardization.npy"
+    standard_data_file_name = "../Data_After_Standardization.npy"
     if os.path.exists(standard_data_file_name):
         X = np.load(standard_data_file_name)
     else:
