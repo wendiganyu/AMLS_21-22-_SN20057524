@@ -7,7 +7,7 @@ import os
 import pickle as pk
 
 import PreProcessing
-import FeatureExtraction
+import DimensionReduction
 
 def SVM_binary(x_train, x_valid, y_train, y_valid):
     """
@@ -40,7 +40,7 @@ def SVM_binary(x_train, x_valid, y_train, y_valid):
     # ------------------------------------------------------------------------------------------------------------------
     # Construct SVM classification model.
 
-    param_grid = {'C': [0.1, 1, 10, 100], 'gamma': [0.0001, 0.001, 0.1, 1], 'kernel': ['rbf', 'poly']}
+    param_grid = {'C': [10], 'gamma': [0.001], 'kernel': ['rbf']}
 
     svc = svm.SVC(probability=True)
 
@@ -53,6 +53,8 @@ def SVM_binary(x_train, x_valid, y_train, y_valid):
     print("I am training SVC!")
     svc_model.fit(x_train, y_train)
     # model.best_params_ contains the best parameters obtained from GridSearchCV
+    print(svc_model.best_params_)
+    print(svc_model.best_score_)
 
     # ------------------------------------------------------------------------------------------------------------------
     # Test the model.
@@ -66,4 +68,13 @@ def SVM_binary(x_train, x_valid, y_train, y_valid):
 
 if __name__ == '__main__':
     x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_test_set(is_mul=False)
-    SVM_binary(x_train, x_valid, y_train, y_valid)
+    k = 2400
+    x_train_pca, x_valid_pca= DimensionReduction.kPCAFeatureExtraction(x_train, x_valid, k)
+
+    # x_train_pca_std = PreProcessing.standardization(x_train_pca)
+    # x_valid_pca_std = PreProcessing.standardization(x_valid_pca)
+    # x_train_std = PreProcessing.standardization(x_train)
+    # x_valid_std = PreProcessing.standardization(x_valid)
+    print(x_train_pca[1])
+    # print(x_train_pca_std[1])
+    SVM_binary(x_train_pca, x_valid_pca, y_train, y_valid)
