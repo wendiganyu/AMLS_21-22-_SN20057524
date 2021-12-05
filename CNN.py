@@ -288,7 +288,7 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------------------------------------------------------
     # Multiple classification
 
-    mul_mtx_path = "MRI_Matrix_Mul.npy"
+    mul_mtx_path = "tmp/MRI_Matrix_Mul.npy"
     mri_mtx_mul = np.load(mul_mtx_path)
 
     X = np.delete(mri_mtx_mul, 262144, 1)

@@ -9,7 +9,7 @@ import pickle as pk
 import PreProcessing
 import FeatureExtraction
 
-def SVM_binary(x_train, y_train,  x_valid, y_valid):
+def SVM_binary(x_train, x_valid, y_train, y_valid):
     """
     First take the train data set and valid data set as inputs.
     Then classify them binary with SVM. Print the information related to classification accuracy.
@@ -22,29 +22,20 @@ def SVM_binary(x_train, y_train,  x_valid, y_valid):
         y_valid: Label information of x_valid validate the classification accuracy of the trained model.
 
     """
-    # ------------------------------------------------------------------------------------------------------------------
-    # Split input data.
-    print("I am splitting the data!")
-    x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.20, random_state=3)
-
-    print("x_train before PCA:\n", x_train.shape)
-    print("y_train:\n", y_train.shape)
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # Do PCA with x_train and x_test.
-    print("I am doing PCA!")
-    x_train, _, Variance, _ = FeatureExtraction.PCAFeatureExtraction(x_train, k)
-    print("Variance after PCA:",Variance)
-    print("x_train after PCA:\n", x_train.shape, x_train)
-
-    print("Train PCA model done!")
-    # Load the trained PCA model from pca_100.pkl
-    print("I am loading pca model from file")
-    pca_model_name = "pca_" + str(k) + ".pkl"
-    trained_pca_model = pk.load(open(pca_model_name, 'rb'))
-    print("Loading PCA model done! Doing transform of x_test")
-    x_test = trained_pca_model.transform(x_test)
-    print("x_test after PCA:\n", x_test.shape, x_test)
+    # # Do PCA with x_train and x_test.
+    # print("I am doing PCA!")
+    # x_train, _, Variance, _ = FeatureExtraction.PCAFeatureExtraction(x_train, k)
+    # print("Variance after PCA:",Variance)
+    # print("x_train after PCA:\n", x_train.shape, x_train)
+    #
+    # print("Train PCA model done!")
+    # # Load the trained PCA model from pca_100.pkl
+    # print("I am loading pca model from file")
+    # pca_model_name = "pca_" + str(k) + ".pkl"
+    # trained_pca_model = pk.load(open(pca_model_name, 'rb'))
+    # print("Loading PCA model done! Doing transform of x_test")
+    # x_test = trained_pca_model.transform(x_test)
+    # print("x_test after PCA:\n", x_test.shape, x_test)
 
     # ------------------------------------------------------------------------------------------------------------------
     # Construct SVM classification model.
@@ -66,9 +57,13 @@ def SVM_binary(x_train, y_train,  x_valid, y_valid):
     # ------------------------------------------------------------------------------------------------------------------
     # Test the model.
     print("Train SVC done! Doing testing!")
-    y_pred = svc_model.predict(x_test)
+    y_pred = svc_model.predict(x_valid)
     print("The predicted Data is :")
     print(y_pred)
     print("The actual data is:")
-    print(np.array(y_test))
-    print(f"The model is {accuracy_score(y_pred, y_test) * 100}% accurate")
+    print(np.array(y_valid))
+    print(f"The model is {accuracy_score(y_pred, y_valid) * 100}% accurate")
+
+if __name__ == '__main__':
+    x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_test_set(is_mul=False)
+    SVM_binary(x_train, x_valid, y_train, y_valid)

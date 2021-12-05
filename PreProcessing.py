@@ -121,10 +121,5 @@ def standardization(X):
     return (X - mu) / sigma
 
 def waveletTransform():
+
     return
-
-
-
-if __name__ == "__main__":
-    mri_mtx = np.load("MRI_Matrix_Binary.npy")
-    np.save("tmp/MRI_Matrix_Binary.npy", mri_mtx)
