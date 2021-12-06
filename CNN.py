@@ -8,6 +8,7 @@ import os.path
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision.utils
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 
@@ -156,6 +157,7 @@ def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
     print('Use seed : {}'.format(seed))
 
     for epoch in range(epoch_num):
+
         # Model turns to train mode.
         model.train()
 
@@ -165,6 +167,11 @@ def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
         for batch in tqdm(train_loader):
             # Each batch in torch consists of data and labels.
             data, labels = batch
+
+            if(epoch % 50 == 0):
+                grid = torchvision.utils.make_grid(data)
+                writer.add_image("images", grid, epoch)
+                writer.add_graph(model, data)
 
             # Add one "batch" dimension to data's 1th dimension
             # data = torch.unsqueeze(data, 1)
@@ -245,6 +252,7 @@ def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
         }
         model_states_path = os.path.join("model_states_tmp", "model_states_epoch{}".format(epoch + 1))
         torch.save(state, model_states_path)
+    writer.close()
 
 
 if __name__ == "__main__":
