@@ -34,16 +34,16 @@ def kNNClassifier(x_train, x_valid, y_train, y_valid, k):
 
 if __name__ == '__main__':
     x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_test_set(is_mul=False)
-    x_train_pca, x_valid_pca = DimensionReduction.kPCAFeatureExtraction(x_train, x_valid, 100)
-    x_train_pca_std = PreProcessing.standardization(x_train_pca)
-    x_valid_pca_std = PreProcessing.standardization(x_valid_pca)
+    # x_train_pca, x_valid_pca = DimensionReduction.kPCAFeatureExtraction(x_train, x_valid, 100)
+    # x_train_pca_std = PreProcessing.standardization(x_train_pca)
+    # x_valid_pca_std = PreProcessing.standardization(x_valid_pca)
 
 
-    # x_train_std = PreProcessing.standardization(x_train)
-    # x_valid_std = PreProcessing.standardization(x_valid)
+    x_train_std = PreProcessing.standardization(x_train)
+    x_valid_std = PreProcessing.standardization(x_valid)
     err = []
     for k in range(1, 36):
-        score = kNNClassifier(x_train_pca, x_valid_pca, y_train, y_valid, k)
+        score = kNNClassifier(x_train, x_valid, y_train, y_valid, k)
         err.append(score)
 
     plt.plot(np.arange(1, 36), err)

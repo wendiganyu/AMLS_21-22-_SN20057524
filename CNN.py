@@ -3,6 +3,8 @@ This file realise the Convolutional Neural Network deep learning classification 
 CNN is used in binary and multiple classification tasks of MRI images.
 """
 # PyTorch packages
+import os.path
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -13,8 +15,8 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 # Progress bar
+from torch.utils.tensorboard import SummaryWriter
 from tqdm.auto import tqdm
-
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Construct dataset.
@@ -22,8 +24,11 @@ from tqdm.auto import tqdm
 
 # Fit our dataset as the form of numpy matrix with torch's DataLoader.
 # To inherit torch's Dataset method in a new class, we must overwrite __getitem__()和__len__() methods.
+import PreProcessing
+
+
 class GetTorchData(torch.utils.data.Dataset):
-    def __init__(self, data, label):
+    def __init__(self, data, label, transform):
         """
             Feed our numpy-format dataset when initialization
 
@@ -32,8 +37,9 @@ class GetTorchData(torch.utils.data.Dataset):
                 label: numpy vector label.
                 transform: Used to preprocess the inpiut image data.
         """
-        self.data = torch.FloatTensor(data)
+        self.data = data
         self.label = torch.LongTensor(label)
+        self.transform = transform
 
     def __getitem__(self, index):
         """
@@ -41,7 +47,8 @@ class GetTorchData(torch.utils.data.Dataset):
             index: indices acquired after dividing the dataset according to batch_size.
         """
         data = self.data[index]
-        # data = self.transform(data)
+        data = self.transform(data)
+
         labels = self.label[index]
         return data, labels
 
@@ -62,7 +69,7 @@ def GetTorchDataLoader(dataset, batch_size):
     """
     # You may adjust the parameter num_workers according to the CPU cores number of your computer.
     # Bugs appear when num_workers>0 using multi cores on my computer. So I use num_workers = 0.
-    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=0)
 
     return data_loader
 
@@ -80,73 +87,20 @@ class CNN(nn.Module):
             # Conv2d(in_channels, out_channels, kernel_size, stride, padding)
             # MaxPool2D(kernel_size, stride, padding)
             nn.Conv2d(1, 64, 3, 1, 1),  # Now it's 64 * 512 * 512
-            # nn.BatchNorm2d(64),  # Normalize
+            nn.BatchNorm2d(64),  # Normalize
             nn.ReLU(),
-            # nn.MaxPool2d(4, 4, 0),  #
+            nn.MaxPool2d(4, 4, 0),  #
 
-            nn.Conv2d(64, 64, 3, 1, 1),  # Now it's 64 * 512 * 512
-            # nn.BatchNorm2d(64),  # Normalize
+            nn.Conv2d(64, 128, 3, 1, 1),
+            nn.BatchNorm2d(128),
             nn.ReLU(),
-
-            nn.MaxPool2d(4, 4, 0),  # 64 * 128 * 128
-
-            nn.Conv2d(64, 128, 3, 1, 1),  # Now it's 128 * 128 * 128
-            # nn.BatchNorm2d(128),  # Normalize
-            nn.ReLU(),
-
-            nn.Conv2d(128, 128, 3, 1, 1),  # Now it's 128 * 128 * 128
-            # nn.BatchNorm2d(128),  # Normalize
-            nn.ReLU(),
-
-            nn.MaxPool2d(2, 2, 0),  # 128 * 64 * 64
-
-            nn.Conv2d(128, 256, 3, 1, 1),  # Now it's 256 * 64 * 64
-            # nn.BatchNorm2d(256),  # Normalize
-            nn.ReLU(),
-
-            nn.Conv2d(256, 256, 3, 1, 1),  # Now it's 256 * 64 * 64
-            # nn.BatchNorm2d(256),  # Normalize
-            nn.ReLU(),
-
-            nn.Conv2d(256, 256, 3, 1, 1),  # Now it's 256 * 64 * 64
-            # nn.BatchNorm2d(256),  # Normalize
-            nn.ReLU(),
-
-            nn.MaxPool2d(2, 2, 0),  # 256 * 32 * 32
-
-            nn.Conv2d(256, 512, 3, 1, 1),  # Now it's 512 * 32 * 32
-            # nn.BatchNorm2d(512),  # Normalize
-            nn.ReLU(),
-
-            nn.Conv2d(512, 512, 3, 1, 1),  # Now it's 512 * 32 * 32
-            # nn.BatchNorm2d(512),  # Normalize
-            nn.ReLU(),
-
-            nn.Conv2d(512, 512, 3, 1, 1),  # Now it's 512 * 32 * 32
-            # nn.BatchNorm2d(512),  # Normalize
-            nn.ReLU(),
-
-            nn.MaxPool2d(2, 2, 0),  # 512 * 16 * 16
-
-            nn.Conv2d(512, 512, 3, 1, 1),  # Now it's 512 * 16 * 16
-            # nn.BatchNorm2d(512),  # Normalize
-            nn.ReLU(),
-
-            nn.Conv2d(512, 512, 3, 1, 1),  # Now it's 512 * 16 * 16
-            # nn.BatchNorm2d(512),  # Normalize
-            nn.ReLU(),
-
-            nn.Conv2d(512, 512, 3, 1, 1),  # Now it's 512 * 16 * 16
-            # nn.BatchNorm2d(512),  # Normalize
-            nn.ReLU(),
-
-            nn.MaxPool2d(2, 2, 0),  # 512 * 8 * 8
+            nn.MaxPool2d(4, 4, 0)
 
         )
 
         if is_mul:
             self.fully_conn = nn.Sequential(
-                nn.Linear(512 * 8 * 8, 4),
+                nn.Linear(128 * 32 * 32, 4),
                 nn.BatchNorm1d(4)
 
                 # nn.ReLU(),
@@ -168,8 +122,8 @@ class CNN(nn.Module):
         x = self.cnn_layer(x)
         x = x.flatten(1)
         x = self.fully_conn(x)
-        # return x
-        return F.log_softmax(x, dim=1)
+        return x
+        # return F.log_softmax(x, dim=1)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -177,21 +131,29 @@ class CNN(nn.Module):
 def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
     # ------------------------------------------------------------------------------------------------------------------
     # Training process.
-    device = torch.device("cpu")
-    # device = "cpu"  # Train the model on my computer with cpu. It can be adjusted to "cuda" if using gpu.
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # Create Tensorboard writer
+    writer = SummaryWriter()
+    print("Tensorboard summary writer created.")
 
     # Initialize model and put it on cpu.
     model = CNN(is_mul=is_mul)
     model.to(device)
+    print(model)
 
     # Use cross entropy as the loss function.
     criterion = nn.CrossEntropyLoss()
 
     # Use Adam as optimizer. Manually set learning rate and fine tune it with experiments.
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 
     # Set the epoch numbers
     epoch_num = epoch_num
+
+    # Set a seed to store the states files of model.
+    seed = torch.initial_seed()
+    print('Use seed : {}'.format(seed))
 
     for epoch in range(epoch_num):
         # Model turns to train mode.
@@ -205,10 +167,10 @@ def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
             data, labels = batch
 
             # Add one "batch" dimension to data's 1th dimension
-            data = torch.unsqueeze(data, 1)
+            # data = torch.unsqueeze(data, 1)
 
             # Output the calculated result.
-            res = model(data.to(device))
+            res = model(data.float().to(device))
 
             # Calculate loss
             loss = criterion(res, labels.to(device))
@@ -235,74 +197,74 @@ def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
         avg_train_loss = sum(train_loss) / len(train_loss)
         avg_train_accu = sum(train_accu) / len(train_accu)
 
+        writer.add_scalar('train loss', avg_train_loss, epoch + 1)
+        writer.add_scalar('train accuracy', avg_train_accu, epoch + 1)
+
         print(f"[ Train | {(epoch + 1) : 05d} ] loss = {avg_train_loss:.6f}, accu = {avg_train_accu:.6f}")
 
-    # ------------------------------------------------------------------------------------------------------------------
-    # Validation process.
+        # ------------------------------------------------------------------------------------------------------------------
+        # Validation process.
 
-    # Model turns to evaluate mode.
-    model.eval()
+        # Model turns to evaluate mode.
+        model.eval()
 
-    valid_loss = []
-    valid_accu = []
+        valid_loss = []
+        valid_accu = []
 
-    for batch in tqdm(valid_loader):
-        data, labels = batch
-        data = torch.unsqueeze(data, 1)
+        for batch in tqdm(valid_loader):
+            data, labels = batch
+            # data = torch.unsqueeze(data, 1)
 
-        # No back propagation in valid process.
-        # Use torch.no_grad() to avoid using gradient.
-        with torch.no_grad():
-            res = model(data.to(device))
+            # No back propagation in valid process.
+            # Use torch.no_grad() to avoid using gradient.
+            with torch.no_grad():
+                res = model(data.float().to(device))
 
-        loss = criterion(res, labels.to(device))
+            loss = criterion(res, labels.to(device))
 
-        accu = (res.argmax(dim=-1) == labels.to(device)).float().mean()
+            accu = (res.argmax(dim=-1) == labels.to(device)).float().mean()
 
-        valid_loss.append(loss.item())
-        valid_accu.append(accu)
+            valid_loss.append(loss.item())
+            valid_accu.append(accu)
 
-    avg_valid_loss = sum(valid_loss) / len(valid_loss)
-    avg_valid_accu = sum(valid_accu) / len(valid_accu)
+        avg_valid_loss = sum(valid_loss) / len(valid_loss)
+        avg_valid_accu = sum(valid_accu) / len(valid_accu)
 
-    print(f"[ Valid | {(epoch + 1) : 05d}] loss = {avg_valid_loss:.6g}, accu = {avg_valid_accu:.5f}")
+        writer.add_scalar('valid loss', avg_valid_loss, epoch + 1)
+        writer.add_scalar('valid accuracy', avg_valid_accu, epoch + 1)
+
+        print(f"[ Valid | {(epoch + 1) : 05d}] loss = {avg_valid_loss:.6g}, accu = {avg_valid_accu:.5f}")
+
+        # Save the model states
+
+        state = {
+            'epoch': epoch,
+            'optimizer': optimizer.state_dict(),
+            'model': model.state_dict(),
+            'seed': seed
+        }
+        model_states_path = os.path.join("model_states_tmp", "model_states_epoch{}".format(epoch + 1))
+        torch.save(state, model_states_path)
 
 
 if __name__ == "__main__":
-    data_dir = "dataset/image"  # Path of dataset directory
-    label_path = "dataset/label.csv"  # Path of dataset's label file
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # Binary classification
-
-    # Path of the .npy file which saves the dataset and its binary labels' information as a matrix.
-    # binary_mtx_path = "MRI_Matrix_Binary.npy"
-    # mri_mtx_binary = np.load(binary_mtx_path)
-    #
-    # X = np.delete(mri_mtx_binary, 262144, 1)
-    #
-    # # Reformat X to 3000 * 512 *512.
-    # X = X.reshape(3000, 512, 512)
-    #
-    # Y = mri_mtx_binary[:, -1]
-    # ------------------------------------------------------------------------------------------------------------------
-    # Multiple classification
-
-    mul_mtx_path = "tmp/MRI_Matrix_Mul.npy"
-    mri_mtx_mul = np.load(mul_mtx_path)
-
-    X = np.delete(mri_mtx_mul, 262144, 1)
-    X = X.reshape(3000, 512, 512)
-
-    Y = mri_mtx_mul[:, -1]
-    # ------------------------------------------------------------------------------------------------------------------
-
-    x_train, x_valid, y_train, y_valid = train_test_split(X, Y, test_size=0.20, random_state=3)
-
+    x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_test_set(is_mul=True, random_state=108)
     # Convert into torch data loaders.
 
-    torch_train_data = GetTorchData(x_train, y_train)
-    torch_valid_data = GetTorchData(x_valid, y_valid)
+    train_transform = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(45),
+        transforms.ToTensor()
+    ])
+
+    valid_transform = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.ToTensor
+    ])
+
+    torch_train_data = GetTorchData(x_train.reshape(2400, 512, 512), y_train, train_transform)
+    torch_valid_data = GetTorchData(x_valid.reshape(600, 512, 512), y_valid, valid_transform)
 
     # Set batch size which will be used in training, validation and testing.
     batch_size = 2
