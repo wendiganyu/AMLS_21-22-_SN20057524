@@ -97,7 +97,7 @@ class Residual_unit(nn.Module):
         self.conv3 = nn.Conv2d(input_channel_2, output_channel, kernel_size=1, stride=1)
         self.batch_normal3 = nn.BatchNorm2d(output_channel)
 
-        self.x_1x1_conv = nn.Conv2d(input_channel_1, output_channel, kernel_size=1, stride=1)
+        self.x_1x1_conv = nn.Conv2d(input_channel_1, output_channel, kernel_size=1, stride=stride_1)
 
     def forward(self, X):
         Y = F.relu(self.batch_normal1(self.conv1(X)))
