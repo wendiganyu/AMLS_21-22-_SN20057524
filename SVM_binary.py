@@ -9,6 +9,7 @@ import pickle as pk
 import PreProcessing
 import DimensionReduction
 
+
 def SVM_binary(x_train, x_valid, y_train, y_valid):
     """
     First take the train data set and valid data set as inputs.
@@ -40,7 +41,7 @@ def SVM_binary(x_train, x_valid, y_train, y_valid):
     # ------------------------------------------------------------------------------------------------------------------
     # Construct SVM classification model.
 
-    param_grid = {'C': [10], 'gamma': [0.001], 'kernel': ['rbf']}
+    param_grid = {'C': [10], 'gamma': [0.0001], 'kernel': ['rbf']}
 
     svc = svm.SVC(probability=True)
 
@@ -66,15 +67,16 @@ def SVM_binary(x_train, x_valid, y_train, y_valid):
     print(np.array(y_valid))
     print(f"The model is {accuracy_score(y_pred, y_valid) * 100}% accurate")
 
-if __name__ == '__main__':
-    x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_test_set(is_mul=False)
-    k = 2400
-    x_train_pca, x_valid_pca= DimensionReduction.kPCAFeatureExtraction(x_train, x_valid, k)
 
-    # x_train_pca_std = PreProcessing.standardization(x_train_pca)
-    # x_valid_pca_std = PreProcessing.standardization(x_valid_pca)
-    # x_train_std = PreProcessing.standardization(x_train)
-    # x_valid_std = PreProcessing.standardization(x_valid)
-    print(x_train_pca[1])
+if __name__ == '__main__':
+    random_state = 108
+    x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_test_set(is_mul=False, random_state=random_state)
+    x_train = PreProcessing.standardization(x_train)
+    x_valid = PreProcessing.standardization(x_valid)
+    k = 2100
+
+    x_train, x_valid, _, _, _ = DimensionReduction.PCAFeatureExtraction(x_train, x_valid, k, random_state=random_state)
+
+    # print(x_train[1])
     # print(x_train_pca_std[1])
-    SVM_binary(x_train_pca, x_valid_pca, y_train, y_valid)
+    SVM_binary(x_train, x_valid, y_train, y_valid)

@@ -13,7 +13,7 @@ x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_test_set(is_mul=Fal
 print(x_train[1])
 pca = pk.load(open("tmp/pca.pkl", 'rb'))
 cumsum = np.cumsum(pca.explained_variance_ratio_)
-d = np.argmax(cumsum >= 0.95) + 1
+d = np.argmax(cumsum >= 0.9) + 1
 print(d)
 X_reduced = pca.transform(x_train)
 X_valid_reduced = pca.transform(x_valid)

@@ -319,7 +319,7 @@ def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
             'model': model.state_dict(),
             'seed': seed
         }
-        model_states_path = os.path.join("model_states_tmp", "model_states_epoch{}".format(epoch + 1))
+        model_states_path = os.path.join("model_states_tmp/seed{}", "model_states_epoch{}".format(seed, epoch + 1))
         torch.save(state, model_states_path)
     writer.close()
 
@@ -332,12 +332,14 @@ if __name__ == "__main__":
         transforms.ToPILImage(),
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(45),
-        transforms.ToTensor()
+        transforms.ToTensor(),
+        transforms.Normalize(47.9, 50.48)
     ])
 
     valid_transform = transforms.Compose([
         transforms.ToPILImage(),
-        transforms.ToTensor()
+        transforms.ToTensor(),
+        transforms.Normalize(47.9, 50.48)
     ])
 
     torch_train_data = GetTorchData(x_train.reshape(2400, 512, 512), y_train, train_transform)

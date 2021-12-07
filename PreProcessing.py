@@ -121,6 +121,12 @@ def standardization(X):
 
 
 if __name__ == '__main__':
-    np.set_printoptions(threshold=np.inf)
+    np.set_printoptions(threshold=np.inf)  # Print all elements in numpy matrices.
     x_train, x_valid, y_train, y_valid = gen_train_test_set(is_mul=True, random_state=107)
-    x_train = standardization(x_train)
+    x_train = x_train / 255
+    x_valid = x_valid / 255
+    print(np.mean(x_train))
+    print(np.std(x_train))
+
+    print(np.mean(x_valid))
+    print(np.std(x_valid))
