@@ -11,6 +11,7 @@ import torch.nn.functional as F
 import torchvision.utils
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
+from torchstat import stat
 
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -48,7 +49,7 @@ class GetTorchData(torch.utils.data.Dataset):
             index: indices acquired after dividing the dataset according to batch_size.
         """
         data = self.data[index]
-        data = self.transform(data)
+        data = self.transform(np.uint8(data))
 
         labels = self.label[index]
         return data, labels
@@ -90,18 +91,13 @@ class CNN(nn.Module):
             nn.Conv2d(1, 64, 3, 1, 1),  # Now it's 64 * 512 * 512
             nn.BatchNorm2d(64),  # Normalize
             nn.ReLU(),
-            nn.MaxPool2d(4, 4, 0),  #
-
-            nn.Conv2d(64, 128, 3, 1, 1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-            nn.MaxPool2d(4, 4, 0)
+            nn.MaxPool2d(16, 16, 0),  #
 
         )
 
         if is_mul:
             self.fully_conn = nn.Sequential(
-                nn.Linear(128 * 32 * 32, 4),
+                nn.Linear(64 * 32 * 32, 4),
                 nn.BatchNorm1d(4)
 
                 # nn.ReLU(),
@@ -142,6 +138,13 @@ def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
     model = CNN(is_mul=is_mul)
     model.to(device)
     print(model)
+
+    # Total params of the model
+    total_params = sum(p.numel() for p in model.parameters())
+    print("Total parameters of the model: "+str(total_params))
+    # Total trainable params of the model
+    total_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print("Total trainable parameters of the model: " + str(total_trainable_params))
 
     # Use cross entropy as the loss function.
     criterion = nn.CrossEntropyLoss()
@@ -268,18 +271,18 @@ if __name__ == "__main__":
 
     valid_transform = transforms.Compose([
         transforms.ToPILImage(),
-        transforms.ToTensor
+        transforms.ToTensor()
     ])
 
     torch_train_data = GetTorchData(x_train.reshape(2400, 512, 512), y_train, train_transform)
     torch_valid_data = GetTorchData(x_valid.reshape(600, 512, 512), y_valid, valid_transform)
 
     # Set batch size which will be used in training, validation and testing.
-    batch_size = 2
+    batch_size = 16
 
     torch_train_loader = GetTorchDataLoader(torch_train_data, batch_size)
     torch_valid_loader = GetTorchDataLoader(torch_valid_data, batch_size)
-    epoch_num = 10
+    epoch_num = 60
 
     # For test --------------------------------------------------------------------------------------------------------
     # import matplotlib.pyplot as plt
