@@ -3,8 +3,9 @@ import cv2
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-# import pywt
 
+
+# import pywt
 
 
 def gen_mri_mtx_with_label(data_dir, label_path, is_mul):
@@ -104,11 +105,9 @@ def gen_train_test_set(is_mul, data_dir="dataset/image", label_path="dataset/lab
     return x_train, x_valid, y_train, y_valid
 
 
-
-
 def standardization(X):
     """
-    Perform Z-score standardization to input data. x' = (x - μ)／σ
+    Perform Z-score standardization to input data. x' = (x - μ)／σ. Row by row.
 
     Inputs
         X: Input data as a form of numpy matrix. Each row represents one data element.
@@ -116,10 +115,12 @@ def standardization(X):
     Return
         Data after standardization.
     """
-    mu = np.mean(X, axis=0)
-    sigma = np.std(X, axis=0)
-    return (X - mu) / sigma
+    mu = np.mean(X, axis=1)
+    sigma = np.std(X, axis=1)
+    return (X - np.vstack(mu)) / np.vstack(sigma)
 
-def waveletTransform():
 
-    return
+if __name__ == '__main__':
+    np.set_printoptions(threshold=np.inf)
+    x_train, x_valid, y_train, y_valid = gen_train_test_set(is_mul=True, random_state=107)
+    x_train = standardization(x_train)

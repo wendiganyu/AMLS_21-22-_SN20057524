@@ -241,7 +241,6 @@ def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
             if (epoch % 50 == 0):
                 grid = torchvision.utils.make_grid(data)
                 writer.add_image("images", grid, epoch)
-                writer.add_graph(model, data)
 
             # Add one "batch" dimension to data's 1th dimension
             # data = torch.unsqueeze(data, 1)
