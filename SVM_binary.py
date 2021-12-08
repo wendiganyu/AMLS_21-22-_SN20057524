@@ -8,6 +8,7 @@ import pickle as pk
 
 import PreProcessing
 import DimensionReduction
+from RandomForest import RF_Classifier_and_Reducer
 
 
 def SVM_binary(x_train, x_valid, y_train, y_valid):
@@ -41,7 +42,7 @@ def SVM_binary(x_train, x_valid, y_train, y_valid):
     # ------------------------------------------------------------------------------------------------------------------
     # Construct SVM classification model.
 
-    param_grid = {'C': [10], 'gamma': [0.0001], 'kernel': ['rbf']}
+    param_grid = {'C': [0.1, 1, 5, 10, 15, 20], 'gamma': [0.0001], 'kernel': ['rbf']}
 
     svc = svm.SVC(probability=True)
 
@@ -71,11 +72,20 @@ def SVM_binary(x_train, x_valid, y_train, y_valid):
 if __name__ == '__main__':
     random_state = 108
     x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_test_set(is_mul=False, random_state=random_state)
-    x_train = PreProcessing.standardization(x_train)
-    x_valid = PreProcessing.standardization(x_valid)
-    k = 2100
+    # x_train = PreProcessing.standardization(x_train)
+    # x_valid = PreProcessing.standardization(x_valid)
+    # k = 2100
+    #
+    # x_train, x_valid, _, _, _ = DimensionReduction.PCAFeatureExtraction(x_train, x_valid, k,
+    # random_state=random_state)
 
-    x_train, x_valid, _, _, _ = DimensionReduction.PCAFeatureExtraction(x_train, x_valid, k, random_state=random_state)
+    x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_test_set(is_mul=False, random_state=random_state)
+
+    # x_train = PreProcessing.standardization(x_train)
+    # x_valid = PreProcessing.standardization(x_valid)
+
+    score, x_train, x_valid = RF_Classifier_and_Reducer(x_train, x_valid, y_train, y_valid,
+                                                        random_state=random_state)
 
     # print(x_train[1])
     # print(x_train_pca_std[1])
