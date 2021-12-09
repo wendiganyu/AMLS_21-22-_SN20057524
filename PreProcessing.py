@@ -60,7 +60,26 @@ def gen_mri_mtx_with_label(data_dir, label_path, is_mul):
     return mri_mtx
 
 
-def gen_train_test_set(is_mul, data_dir="dataset/image", label_path="dataset/label.csv", random_state=0, test_size=0.2):
+def gen_X_Y(is_mul, data_dir="dataset/image", label_path="dataset/label.csv"):
+    if is_mul:
+        mtx_file_name = "tmp/MRI_Matrix_Mul.npy"
+    else:
+        mtx_file_name = "tmp/MRI_Matrix_Binary.npy"
+
+    if os.path.exists(mtx_file_name):
+        mri_mtx = np.load(mtx_file_name)
+    else:
+        mri_mtx = gen_mri_mtx_with_label(data_dir, label_path, is_mul=is_mul)
+        np.save(mtx_file_name, mri_mtx)
+
+    # Split X and Y.
+    Y = mri_mtx[:, -1]
+    X = np.delete(mri_mtx, 262144, 1)
+
+    return X, Y
+
+
+def gen_train_test_set(is_mul, random_state=108, test_size=0.2):
     """
     Generate the train set and test set.
     The generated train set and test set are different depending on whether they will be used into binary or multiple
@@ -84,23 +103,10 @@ def gen_train_test_set(is_mul, data_dir="dataset/image", label_path="dataset/lab
         y_train: Label information of x_train as inputs to train a model.
         y_valid: Label information of x_valid validate the classification accuracy of the trained model.
     """
-    if (is_mul):
-        mtx_file_name = "tmp/MRI_Matrix_Mul.npy"
-    else:
-        mtx_file_name = "tmp/MRI_Matrix_Binary.npy"
-
-    if os.path.exists(mtx_file_name):
-        mri_mtx = np.load(mtx_file_name)
-    else:
-        mri_mtx = gen_mri_mtx_with_label(data_dir, label_path, is_mul=is_mul)
-        np.save(mtx_file_name, mri_mtx)
-
-    # Split X and Y.
-    Y = mri_mtx[:, -1]
-    mri_mtx = np.delete(mri_mtx, 262144, 1)
+    X, Y = gen_X_Y(is_mul=is_mul)
 
     # Divide train set and test set.
-    x_train, x_valid, y_train, y_valid = train_test_split(mri_mtx, Y, test_size=test_size, random_state=random_state)
+    x_train, x_valid, y_train, y_valid = train_test_split(X, Y, test_size=test_size, random_state=random_state)
 
     return x_train, x_valid, y_train, y_valid
 

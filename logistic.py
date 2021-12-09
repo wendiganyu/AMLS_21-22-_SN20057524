@@ -29,7 +29,7 @@ def LR_Classifier(x_train, x_valid, y_train, y_valid):
 
     score = metrics.accuracy_score(y_valid, y_pred)
     print("Logistic classifier accuracy: " + str(score))
-    return score
+    return score, y_pred
 
 
 if __name__ == '__main__':
