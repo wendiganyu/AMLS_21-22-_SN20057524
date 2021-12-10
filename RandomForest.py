@@ -83,7 +83,7 @@ def RF_Classifier(x_train, x_valid, y_train, y_valid, n_estimators):
     # Create NB object with a K coefficient
     tree_params = {
         'criterion': 'entropy',
-        'random_state': 0
+        'random_state': 110
     }
 
     # rf_model_name = "tmp/" + "rf_randomState" + str(random_state) + ".pkl"
@@ -108,38 +108,6 @@ def RF_Classifier(x_train, x_valid, y_train, y_valid, n_estimators):
     return accu, y_pred
 
 
-def RF_Classifier_CV(X, Y):
-    """
-    First take the train data set and valid data set as inputs.
-    Then classify them binary with kNN. Print the information related to classification accuracy.
-
-    Inputs:
-        x_train: Preprocessed brain MRI images as inputs to train a model.
-        y_train: Label information of x_train as inputs to train a model.
-        x_valid: Preprocessed brain MRI images to validate the classification accuracy of the trained model.
-                    The preprocessing of x_valid set cannot use any information of x_train or y_train.
-        y_valid: Label information of x_valid validate the classification accuracy of the trained model.
-        k: Number of neighbors.
-
-    """
-    # Create NB object with a K coefficient
-    # tree_params = {
-    #     'criterion': 'entropy'
-    # }
-
-    # rf = tree.DecisionTreeClassifier(**tree_params, )
-    rf = RandomForestClassifier(criterion='entropy', n_estimators=120, random_state=0)
-    scores = cross_val_score(rf, X, Y, cv=5)
-    print("scores of 5-fold validation: ")
-    print(scores)
-
-    accu = scores.mean()
-    std = scores.std()
-    print("%0.5f accuracy with a standard deviation of %0.5f" % (accu, std))
-
-    return accu, std
-
-
 if __name__ == '__main__':
     # random_state = 108
     # x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_test_set(is_mul=False, random_state=108)
@@ -162,9 +130,11 @@ if __name__ == '__main__':
     #
     scores = []
     for train_idx, valid_idx in stf_K_fold.split(X, Y):
-        print("TRAIN:", train_idx, "TEST:", valid_idx)
+        # print("TRAIN:", train_idx, "TEST:", valid_idx)
         x_train, x_valid = X[train_idx], X[valid_idx]
         y_train, y_valid = Y[train_idx], Y[valid_idx]
+        # x_train = PreProcessing.BinaryImage(x_train)
+        # x_valid = PreProcessing.BinaryImage(x_valid)
         #--------------------------------------------
 
         # scores = []

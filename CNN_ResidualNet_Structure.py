@@ -2,22 +2,17 @@
 This file realise the Convolutional Neural Network deep learning classification model with the help of PyTorch.
 CNN is used in binary and multiple classification tasks of MRI images.
 """
-# PyTorch packages
 import os.path
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torchvision.utils
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
-
 import numpy as np
-from sklearn.model_selection import train_test_split
-
-# Progress bar
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 from torch.utils.tensorboard import SummaryWriter
-from tqdm.auto import tqdm
+from tqdm.auto import tqdm  # Progress bar
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Construct dataset.
@@ -154,7 +149,6 @@ class CNN(nn.Module):
         self.cnn_layer = nn.Sequential(
             # Conv2d(in_channels, out_channels, kernel_size, stride, padding)
             # MaxPool2D(kernel_size, stride, padding)
-
             b1,
             b2,
             b3,
@@ -166,20 +160,11 @@ class CNN(nn.Module):
 
         if is_mul:
             self.fully_conn = nn.Sequential(
-                nn.Linear(2048, 4),
-
-                # nn.ReLU(),
-                # nn.Linear(1024, 256),
-                # nn.ReLU(),
-                # nn.Linear(256, 4)
+                nn.Linear(2048, 4)
             )
         else:
             self.fully_conn = nn.Sequential(
-                nn.Linear(2048, 2),
-                # nn.ReLU(),
-                # nn.Linear(1024, 256),
-                # nn.ReLU(),
-                # nn.Linear(256, 2)
+                nn.Linear(2048, 2)
             )
 
     def forward(self, x):
@@ -193,13 +178,21 @@ class CNN(nn.Module):
 # ----------------------------------------------------------------------------------------------------------------------
 # Training and Validation process.
 def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
+    # Since tensorboard's add_scalar function doesn't work with torch on GPU,
+    # I changed to use list to record the accuracy and loss vs each epoch.
+    train_loss_list = []
+    train_acc_list = []
+    valid_loss_list = []
+    valid_acc_list = []
+    # Set x axis of plot showing with integer.
+    plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
     # ------------------------------------------------------------------------------------------------------------------
     # Training process.
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Create Tensorboard writer
-    writer = SummaryWriter()
-    print("Tensorboard summary writer created.")
+    # writer = SummaryWriter()
+    # print("Tensorboard summary writer created.")
 
     # Initialize model and put it on cpu.
     model = CNN(is_mul=is_mul)
@@ -219,15 +212,19 @@ def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
     # Use Adam as optimizer. Manually set learning rate and fine tune it with experiments.
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 
+    # multiply LR by 1 / 10 after every 100 epochs
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.1)
+    print('LR Scheduler created')
+
     # Set the epoch numbers
     epoch_num = epoch_num
 
     # Set a seed to store the states files of model.
     seed = torch.initial_seed()
     print('Use seed : {}'.format(seed))
+    os.makedirs("model_states_tmp/seed{}".format(seed), exist_ok=True)
 
     for epoch in range(epoch_num):
-
         # Model turns to train mode.
         model.train()
 
@@ -238,12 +235,11 @@ def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
             # Each batch in torch consists of data and labels.
             data, labels = batch
 
-            if (epoch % 50 == 0):
-                grid = torchvision.utils.make_grid(data)
-                writer.add_image("images", grid, epoch)
-
-            # Add one "batch" dimension to data's 1th dimension
-            # data = torch.unsqueeze(data, 1)
+            # Save some image samples in training process.
+            # if (epoch % 100 == 0):
+            #     grid = torchvision.utils.make_grid(data)
+            #     writer.add_image("images", grid, epoch)
+            #     # writer.add_graph(model, data)
 
             # Output the calculated result.
             res = model(data.float().to(device))
@@ -270,11 +266,17 @@ def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
             train_loss.append(loss.item())
             train_accu.append(accu)
 
+        lr_scheduler.step()
+
         avg_train_loss = sum(train_loss) / len(train_loss)
         avg_train_accu = sum(train_accu) / len(train_accu)
 
-        writer.add_scalar('train loss', avg_train_loss, epoch + 1)
-        writer.add_scalar('train accuracy', avg_train_accu, epoch + 1)
+        # Add train loss and accuracy into lists.
+        train_loss_list.append(avg_train_loss)
+        train_acc_list.append(avg_train_accu)
+
+        # writer.add_scalar('train loss', avg_train_loss, epoch + 1)
+        # writer.add_scalar('train accuracy', avg_train_accu, epoch + 1)
 
         print(f"[ Train | {(epoch + 1) : 05d} ] loss = {avg_train_loss:.6f}, accu = {avg_train_accu:.6f}")
 
@@ -306,8 +308,12 @@ def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
         avg_valid_loss = sum(valid_loss) / len(valid_loss)
         avg_valid_accu = sum(valid_accu) / len(valid_accu)
 
-        writer.add_scalar('valid loss', avg_valid_loss, epoch + 1)
-        writer.add_scalar('valid accuracy', avg_valid_accu, epoch + 1)
+        # Add valid loss and accuracy into lists.
+        valid_loss_list.append(avg_valid_loss)
+        valid_acc_list.append(avg_valid_accu)
+
+        # writer.add_scalar('valid loss', avg_valid_loss, epoch + 1)
+        # writer.add_scalar('valid accuracy', avg_valid_accu, epoch + 1)
 
         print(f"[ Valid | {(epoch + 1) : 05d}] loss = {avg_valid_loss:.6g}, accu = {avg_valid_accu:.5f}")
 
@@ -319,45 +325,79 @@ def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
             'model': model.state_dict(),
             'seed': seed
         }
-        model_states_path = os.path.join("model_states_tmp/seed{}", "model_states_epoch{}".format(seed, epoch + 1))
+
+        model_states_path = os.path.join("model_states_tmp/seed{}".format(seed),
+                                         "model_states_epoch{}".format(epoch + 1))
         torch.save(state, model_states_path)
-    writer.close()
+    # writer.close()
+
+    # Save the records
+    os.makedirs('tmp/resultsMatrix/seed{}'.format(seed), exist_ok=True)
+    np.save('tmp/resultsMatrix/seed{}/train_acc.npy'.format(seed), np.array(train_acc_list))
+    np.save('tmp/resultsMatrix/seed{}/valid_acc.npy'.format(seed), np.array(valid_acc_list))
+    np.save('tmp/resultsMatrix/seed{}/train_loss.npy'.format(seed), np.array(train_loss_list))
+    np.save('tmp/resultsMatrix/seed{}/valid_loss.npy'.format(seed), np.array(valid_loss_list))
+
+    # Generate the plots.
+    x1 = range(epoch_num)
+    x2 = range(epoch_num)
+    y1_1 = train_acc_list
+    y1_2 = valid_acc_list
+    y2_1 = train_loss_list
+    y2_2 = valid_loss_list
+
+    os.makedirs('tmp/imgs/seed{}'.format(seed), exist_ok=True)
+
+    plt.plot(x1, y1_1, label='train accu', color='darkorange')
+    plt.plot(x1, y1_2, label='valid accu', color='b')
+    plt.title('Accuracy vs. epoches')
+    plt.xlabel('epoch')
+    plt.ylabel('accuracy')
+    plt.legend()
+    plt.savefig("tmp/imgs/seed{}/".format(seed) + "accu.svg")
+    plt.show()
+
+    plt.plot(x2, y2_1, label='train loss', color='darkorange')
+    plt.plot(x2, y2_2, label='valid loss', color='b')
+    plt.title('Losses vs. epoches')
+    plt.xlabel('epoch')
+    plt.ylabel('loss function value')
+    plt.legend()
+
+    # Don't put plt.savefig() behind plt.show()!
+    plt.savefig("tmp/imgs/seed{}/".format(seed) + "loss.svg")
+    plt.show()
 
 
 if __name__ == "__main__":
     x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_test_set(is_mul=True, random_state=108)
-    # Convert into torch data loaders.
 
+    # Data augmentation.
     train_transform = transforms.Compose([
         transforms.ToPILImage(),
         transforms.RandomHorizontalFlip(),
+        transforms.RandomVerticalFlip(),
         transforms.RandomRotation(45),
+        transforms.ColorJitter(brightness=0.5, contrast=0.5, hue=0.5),
         transforms.ToTensor(),
-        transforms.Normalize(47.9, 50.48)
+        transforms.Normalize(0.188, 0.198)
     ])
 
     valid_transform = transforms.Compose([
         transforms.ToPILImage(),
         transforms.ToTensor(),
-        transforms.Normalize(47.9, 50.48)
+        transforms.Normalize(0.188, 0.198)
     ])
 
+    # Convert into torch data loaders.
     torch_train_data = GetTorchData(x_train.reshape(2400, 512, 512), y_train, train_transform)
     torch_valid_data = GetTorchData(x_valid.reshape(600, 512, 512), y_valid, valid_transform)
 
     # Set batch size which will be used in training, validation and testing.
-    batch_size = 16
+    batch_size = 100
 
     torch_train_loader = GetTorchDataLoader(torch_train_data, batch_size)
     torch_valid_loader = GetTorchDataLoader(torch_valid_data, batch_size)
-    epoch_num = 60
-
-    # For test --------------------------------------------------------------------------------------------------------
-    # import matplotlib.pyplot as plt
-    # for i, data in enumerate(torch_valid_loader):
-    #     print(f"Batch {i} \n")
-    #     plt.imshow(data[0][0], cmap='gray')
-    #     plt.show()
-    # -----------------------------------------------------------------------------------------------------------------
+    epoch_num = 300
 
     train_valid_model(torch_train_loader, torch_valid_loader, epoch_num, is_mul=True)

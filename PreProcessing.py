@@ -4,10 +4,6 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-
-# import pywt
-
-
 def gen_mri_mtx_with_label(data_dir, label_path, is_mul):
     """
     Transform the 3000 raw .jpg images in MRI dataset combined with
