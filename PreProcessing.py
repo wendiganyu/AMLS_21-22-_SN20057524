@@ -125,6 +125,13 @@ def standardization(X):
     sigma = np.std(X, axis=1)
     return (X - np.vstack(mu)) / np.vstack(sigma)
 
+def BinaryImage(X):
+    X = np.array(X)
+    X[X < 140] = 0
+    X[X >= 140] = 1
+    return X
+
+
 
 if __name__ == '__main__':
     np.set_printoptions(threshold=np.inf)  # Print all elements in numpy matrices.

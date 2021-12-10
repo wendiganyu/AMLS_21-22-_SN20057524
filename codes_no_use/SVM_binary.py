@@ -72,12 +72,12 @@ def SVM_binary_CV(X, Y):
 
     # Construct SVM classification model.
 
-    svc = svm.SVC(kernel='rbf', C=5, gamma=0.001)
+    svc = svm.SVC(kernel='rbf', C=3, gamma=0.001)
     scores = cross_val_score(svc, X, Y, cv=5)
 
     accu = scores.mean()
     std = scores.std()
-    print("%0.2f accuracy with a standard deviation of %0.2f" % (accu, std))
+    print("%0.5f accuracy with a standard deviation of %0.5f" % (accu, std))
 
     return accu, std
 
@@ -104,6 +104,5 @@ if __name__ == '__main__':
 
     # -------------------------------------------------------------------------------------------------
     X, Y = PreProcessing.gen_X_Y(is_mul=False)
-    score, _, x_train, x_valid, X_reduced = RF_Classifier_and_Reducer(x_train, x_valid, y_train, y_valid,X,
-                                                            random_state=random_state)
+    score, _, x_train, x_valid, X_reduced = RF_Classifier_and_Reducer(x_train, x_valid, y_train, y_valid, X)
     SVM_binary_CV(X_reduced,Y)

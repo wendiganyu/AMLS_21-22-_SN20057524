@@ -8,7 +8,7 @@ import PreProcessing
 
 # pca_dims = PCA()
 # pca_dims.fit(x_train)
-
+'''
 x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_test_set(is_mul=False, random_state=109)
 print(x_train[1])
 pca = pk.load(open("tmp/pca.pkl", 'rb'))
@@ -50,4 +50,9 @@ plt.show(block=True)
 # plt.imshow(np.reshape(x_train[1], (512, 512)), cmap="gray")
 # plt.show()
 # pk.dump(pca_dims, open("tmp/pca.pkl", "wb"), protocol=4)
+'''
+tmp_list = [50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 300, 400, 600, 1000]
+for i in np.arange(1, len(tmp_list)+1):
+    print(i)
 
+np.save("abc.npy", np.array(tmp_list))

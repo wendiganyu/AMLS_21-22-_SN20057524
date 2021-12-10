@@ -1,12 +1,8 @@
-import numpy as np
-from matplotlib import pyplot as plt
 from sklearn.model_selection import cross_val_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn import metrics
 
-import DimensionReduction
 import PreProcessing
-from RandomForest import RF_Classifier_and_Reducer
 
 
 def kNNClassifier(x_train, x_valid, y_train, y_valid, k):
@@ -30,7 +26,7 @@ def kNNClassifier(x_train, x_valid, y_train, y_valid, k):
     y_pred = neigh.predict(x_valid)
 
     report = metrics.classification_report(y_valid, y_pred)
-    print("Random Forest classification report:\n " + report)
+    print("kNN classification report:\n " + report)
     score = metrics.accuracy_score(y_valid, y_pred)
     print("kNN accuracy with number of neighbors k=" + str(k) + ":" + str(score * 100) + "%")
     return score, y_pred

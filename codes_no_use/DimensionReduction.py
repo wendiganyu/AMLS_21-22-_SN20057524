@@ -1,13 +1,12 @@
 import os.path
 
 from sklearn.decomposition import PCA
-from sklearn.decomposition import KernelPCA
 import pickle as pk
 
 import PreProcessing
 
 
-def PCAFeatureExtraction(x_train, x_valid, k, random_state):
+def PCAFeatureExtraction(x_train, x_valid, k):
     """
     Do the Principle Component Analysis (PCA) method to original input data
     to get the dimensional reduced output, which is smaller and reduces disturbance
@@ -37,18 +36,13 @@ def PCAFeatureExtraction(x_train, x_valid, k, random_state):
 
     # Check if there are already-saved pca models to load.
 
-    pca_model_name = "tmp/"+"pca_k" + str(k) + "_random" + str(random_state) + ".pkl"
-    if os.path.exists(pca_model_name):
-        print("Yes you are loading pca model from saved pickle file!")
-        pca = pk.load(open(pca_model_name, 'rb'))
-    else:
-        pca = PCA(n_components=k)
-        # Fit the algorithm with dataset
-        pca.fit(x_train)
 
-        # Save the trained PCA model to a file.
-        # Set protocol=4 to be able to save large pickle files.
-        pk.dump(pca, open(pca_model_name, "wb"), protocol=4)
+    pca = PCA(n_components=k)
+    # Fit the algorithm with dataset
+    pca.fit(x_train)
+
+    print("PCA train finish.")
+
 
     x_train_pca = pca.transform(x_train)
     x_valid_pca = pca.transform(x_valid)
