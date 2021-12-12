@@ -66,6 +66,7 @@ def gen_X_Y(is_mul, data_dir="dataset/image", label_path="dataset/label.csv"):
         mri_mtx = np.load(mtx_file_name)
     else:
         mri_mtx = gen_mri_mtx_with_label(data_dir, label_path, is_mul=is_mul)
+        os.makedirs('tmp/', exist_ok=True)
         np.save(mtx_file_name, mri_mtx)
 
     # Split X and Y.
@@ -75,7 +76,7 @@ def gen_X_Y(is_mul, data_dir="dataset/image", label_path="dataset/label.csv"):
     return X, Y
 
 
-def gen_train_test_set(is_mul, random_state=108, test_size=0.2):
+def gen_train_valid_set(is_mul, random_state=108, test_size=0.2):
     """
     Generate the train set and test set.
     The generated train set and test set are different depending on whether they will be used into binary or multiple
@@ -106,6 +107,26 @@ def gen_train_test_set(is_mul, random_state=108, test_size=0.2):
 
     return x_train, x_valid, y_train, y_valid
 
+def gen_test_X_Y(is_mul, data_dir="test/image", label_path="test/label.csv"):
+    if is_mul:
+        mtx_file_name = "tmp/test_MRI_Matrix_Mul.npy"
+    else:
+        mtx_file_name = "tmp/test_MRI_Matrix_Binary.npy"
+
+    if os.path.exists(mtx_file_name):
+        mri_mtx = np.load(mtx_file_name)
+    else:
+        mri_mtx = gen_mri_mtx_with_label(data_dir, label_path, is_mul=is_mul)
+        os.makedirs('tmp/', exist_ok=True)
+        np.save(mtx_file_name, mri_mtx)
+
+    # Split X and Y.
+    Y = mri_mtx[:, -1]
+    X = np.delete(mri_mtx, 262144, 1)
+
+    return X, Y
+
+
 
 def standardization(X):
     """
@@ -131,11 +152,5 @@ def BinaryImage(X):
 
 if __name__ == '__main__':
     np.set_printoptions(threshold=np.inf)  # Print all elements in numpy matrices.
-    x_train, x_valid, y_train, y_valid = gen_train_test_set(is_mul=True, random_state=107)
-    x_train = x_train / 255
-    x_valid = x_valid / 255
-    print(np.mean(x_train))
-    print(np.std(x_train))
-
-    print(np.mean(x_valid))
-    print(np.std(x_valid))
+    X, Y = gen_test_X_Y(is_mul=False)
+    print(Y)

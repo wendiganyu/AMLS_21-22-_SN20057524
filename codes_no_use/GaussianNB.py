@@ -33,7 +33,7 @@ def NBClassifier(x_train, x_valid, y_train, y_valid):
 
 
 if __name__ == '__main__':
-    x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_test_set(is_mul=False)
+    x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_valid_set(is_mul=False)
     # x_train_pca, x_valid_pca = DimensionReduction.kPCAFeatureExtraction(x_train, x_valid, 100)
     # x_train_pca_std = PreProcessing.standardization(x_train_pca)
     # x_valid_pca_std = PreProcessing.standardization(x_valid_pca)

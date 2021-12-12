@@ -1,10 +1,17 @@
 import numpy as np
+from matplotlib import pyplot as plt
 from sklearn import metrics
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import SelectFromModel
 from sklearn.model_selection import cross_val_score, StratifiedKFold
 
 import PreProcessing
+from sklearn import tree
+import graphviz
+
+import os
+
+os.environ["PATH"] += os.pathsep + "D:/Graphviz/bin/"
 
 
 def RF_Classifier_and_Reducer(x_train, x_valid, y_train, y_valid):
@@ -82,8 +89,9 @@ def RF_Classifier(x_train, x_valid, y_train, y_valid, n_estimators):
     """
     # Create NB object with a K coefficient
     tree_params = {
-        'criterion': 'entropy',
-        'random_state': 110
+        # 'criterion': 'entropy',
+        'criterion': 'gini'
+        # 'random_state': 110
     }
 
     # rf_model_name = "tmp/" + "rf_randomState" + str(random_state) + ".pkl"
@@ -94,9 +102,13 @@ def RF_Classifier(x_train, x_valid, y_train, y_valid, n_estimators):
     rf = RandomForestClassifier(n_estimators=n_estimators, **tree_params)
     rf.fit(x_train, y_train)  # Fit NB model
 
-    # Save the trained PCA model to a file.
-    # Set protocol=4 to be able to save large pickle files.
-    # pk.dump(rf, open(rf_model_name, "wb"), protocol=4)
+    # Plot one of the decision tree
+    # text_representation = tree.export_text(rf.estimators_[1])
+    # print(text_representation)
+    # dot_data = tree.export_graphviz(rf.estimators_[1])
+    # graph = graphviz.Source(dot_data)
+    # graph.render("abc")
+    # tree.plot_tree(rf.estimators_[1])
 
     y_pred = rf.predict(x_valid)
 
@@ -109,21 +121,22 @@ def RF_Classifier(x_train, x_valid, y_train, y_valid, n_estimators):
 
 
 if __name__ == '__main__':
-    # random_state = 108
-    # x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_test_set(is_mul=False, random_state=108)
-    #
-    # # x_train = PreProcessing.standardization(x_train)
-    # # x_valid = PreProcessing.standardization(x_valid)
-    #
-    # score, x_train_reduced, x_valid_reduced = RF_Classifier_and_Reducer(x_train, x_valid, y_train, y_valid,
-    #                                                                     random_state=random_state)
-    #
-    # print(x_train_reduced.shape)
-    # print(x_train_reduced)
-    # print(x_valid_reduced.shape)
-    # print(x_valid_reduced)
+    is_mul = True
+    stf_K_fold = StratifiedKFold(n_splits=5)
+    X, Y = PreProcessing.gen_X_Y(is_mul=is_mul)
+    x_test, y_test = PreProcessing.gen_test_X_Y(is_mul=is_mul)
+
+    for train_idx, valid_idx in stf_K_fold.split(X, Y):
+        # print("TRAIN:", train_idx, "TEST:", valid_idx)
+        x_train, x_valid = X[train_idx], X[valid_idx]
+        y_train, y_valid = Y[train_idx], Y[valid_idx]
+        RF_Classifier(x_train, x_valid, y_train, y_valid, n_estimators=650)
+        # RF_Classifier(x_train, x_test, y_train, y_test, n_estimators=650)
+
+    # x_train, _, y_train, _ = PreProcessing.gen_train_valid_set(is_mul=False)
 
     # --------------------------------------------------------------------------------------------------------
+    '''
     # Create Stratified K-Fold model.
     stf_K_fold = StratifiedKFold(n_splits=5)
     X, Y = PreProcessing.gen_X_Y(is_mul=False)
@@ -153,9 +166,11 @@ if __name__ == '__main__':
     #
     #     # x_train, x_valid, _, _, _ = DimensionReduction.PCAFeatureExtraction(x_train, x_valid, 800)
     #
-        accu, _ = RF_Classifier(x_train, x_valid, y_train, y_valid, n_estimators=650)
+        accu, _, rf = RF_Classifier(x_train, x_valid, y_train, y_valid, n_estimators=650)
     #
         scores.append(accu)
+
+        visualise_tree(rf.estimators_[0])
     #
     print(scores)
     avg_accu = np.array(scores).mean()
@@ -163,3 +178,4 @@ if __name__ == '__main__':
     #
     print("RF with 5-fold stratified cross validation: %0.5f accuracy with a standard deviation of %0.5f" % (avg_accu, std))
 
+    '''

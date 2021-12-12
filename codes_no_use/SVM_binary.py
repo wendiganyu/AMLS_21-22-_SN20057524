@@ -84,7 +84,7 @@ def SVM_binary_CV(X, Y):
 
 if __name__ == '__main__':
     random_state = 108
-    x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_test_set(is_mul=False, random_state=random_state)
+    x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_valid_set(is_mul=False, random_state=random_state)
     #
     #
     # score, _, x_train, x_valid = RF_Classifier_and_Reducer(x_train, x_valid, y_train, y_valid,

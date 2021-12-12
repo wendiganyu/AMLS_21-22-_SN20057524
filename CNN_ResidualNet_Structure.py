@@ -350,7 +350,7 @@ def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
 
     plt.plot(x1, y1_1, label='train accu', color='darkorange')
     plt.plot(x1, y1_2, label='valid accu', color='b')
-    plt.title('Accuracy vs. epoches')
+    plt.title('Accuracy vs. epochs')
     plt.xlabel('epoch')
     plt.ylabel('accuracy')
     plt.legend()
@@ -359,7 +359,7 @@ def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
 
     plt.plot(x2, y2_1, label='train loss', color='darkorange')
     plt.plot(x2, y2_2, label='valid loss', color='b')
-    plt.title('Losses vs. epoches')
+    plt.title('Losses vs. epochs')
     plt.xlabel('epoch')
     plt.ylabel('loss function value')
     plt.legend()
@@ -370,7 +370,7 @@ def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
 
 
 if __name__ == "__main__":
-    x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_test_set(is_mul=True, random_state=108)
+    x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_valid_set(is_mul=True, random_state=108)
 
     # Data augmentation.
     train_transform = transforms.Compose([
