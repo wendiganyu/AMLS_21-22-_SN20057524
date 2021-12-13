@@ -3,3 +3,4 @@
 /model_states_tmp/
 /runs/
 /test/
+*.pyc
