@@ -90,7 +90,7 @@ if __name__ == '__main__':
 
         scores.append(score)
 
-    print("Accuracies of 5 RF classifiers using stratified 5-fold: "+scores)
+    print("Accuracies of 5 RF classifiers using stratified 5-fold: "+str(scores))
     avg_accu = np.array(scores).mean()
     std = np.array(scores).std()
 
