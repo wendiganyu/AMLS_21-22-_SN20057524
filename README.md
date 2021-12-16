@@ -17,7 +17,7 @@ This is my final project of Applied Machine Learning Systems course I, which doe
 │   ├── image/  
 │   └── label.csv  
 ├── model_states_tmp/  <font color=yellow>The folder to store the state files for each epoch of my CNN model in training process. </font>  
-├── PreProcessing.py  <font color=yellow>Python file to concat and convert the dataset of images to a numpy matrix of 3000*262145, and test set to a matrix of 200*262145. And functions to separate and extract data and label information. </font>    
+├── PreProcessing.py  <font color=yellow>Python file to concat and convert the dataset of images to a numpy matrix of 3000x262145, and test set to a matrix of 200x262145. And functions to separate and extract data and label information. </font>    
 ├── RandomForest.py   <font color=yellow>Implementation of my RF model.</font>  
 ├── README.md  
 ├── requirements.txt  <font color=yellow>Package requirements of the project.</font>  
