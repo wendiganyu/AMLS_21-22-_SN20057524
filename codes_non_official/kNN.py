@@ -32,35 +32,7 @@ def kNNClassifier(x_train, x_valid, y_train, y_valid, k):
     return score, y_pred
 
 
-def kNNClassifier_CV(X, Y, k):
-    """
-    First take the train data set and valid data set as inputs.
-    Then classify them binary with kNN. Print the information related to classification accuracy.
-
-    Inputs:
-        x_train: Preprocessed brain MRI images as inputs to train a model.
-        y_train: Label information of x_train as inputs to train a model.
-        x_valid: Preprocessed brain MRI images to validate the classification accuracy of the trained model.
-                    The preprocessing of x_valid set cannot use any information of x_train or y_train.
-        y_valid: Label information of x_valid validate the classification accuracy of the trained model.
-        k: Number of neighbors.
-
-    """
-    # Create KNN object with a K coefficient
-    neigh = KNeighborsClassifier(n_neighbors=k)
-
-    scores = cross_val_score(neigh, X, Y, cv=5)
-    print("scores of 5-fold validation: ")
-    print(scores)
-
-    accu = scores.mean()
-    std = scores.std()
-    print("%0.2f accuracy with a standard deviation of %0.2f" % (accu, std))
-
-    return accu, std
-
-
-if __name__ == '__main__':
+# if __name__ == '__main__':
     # random_state = 108
     # x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_test_set(is_mul=False, random_state=108)
     # x_train_pca, x_valid_pca = DimensionReduction.kPCAFeatureExtraction(x_train, x_valid, 100)
@@ -81,6 +53,3 @@ if __name__ == '__main__':
     # plt.show()
     # score = kNNClassifier(x_train, x_valid, y_train, y_valid)
 
-    # ---------------------------------------------------------------------------------------------------
-    X, Y = PreProcessing.gen_X_Y(is_mul=False)
-    kNNClassifier_CV(X, Y, k=1)
