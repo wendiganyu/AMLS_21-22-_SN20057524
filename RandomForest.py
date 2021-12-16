@@ -95,7 +95,7 @@ if __name__ == '__main__':
     std = np.array(scores).std()
 
     print("RF with 5-fold stratified cross validation: %0.5f average accuracy with a standard deviation of %0.5f" % (
-        str(avg_accu), str(std)))
+        avg_accu, std))
 
 
 

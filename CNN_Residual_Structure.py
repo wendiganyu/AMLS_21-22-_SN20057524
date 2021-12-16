@@ -181,6 +181,17 @@ class CNN(nn.Module):
 # ----------------------------------------------------------------------------------------------------------------------
 # Training and Validation process.
 def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
+    """
+    Train the deep residual CNN with training set and validate on valid set.
+    In the training process, results will be output to screen, model state files will be saved.
+    After training process done, it will generate and save training curves and training data.
+
+    Input
+        train_loader: Provide training data and labels.
+        valid_loader: Provide valid data and labels.
+        is_mul: generate the CNN model and train differently depending whether it will be used in binary or multiple
+                classification tasks.
+    """
     # Since tensorboard's add_scalar function doesn't work with torch on GPU,
     # I changed to use list to record the accuracy and loss vs each epoch.
     train_loss_list = []
