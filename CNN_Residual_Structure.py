@@ -6,6 +6,7 @@ import os.path
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from sklearn.model_selection import StratifiedKFold
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 import numpy as np
@@ -235,11 +236,12 @@ def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
             # Each batch in torch consists of data and labels.
             data, labels = batch
 
+
+
             # Save some image samples in training process.
             # if (epoch % 100 == 0):
             #     grid = torchvision.utils.make_grid(data)
             #     writer.add_image("images", grid, epoch)
-            #     # writer.add_graph(model, data)
 
             # Output the calculated result.
             res = model(data.float().to(device))
@@ -370,7 +372,16 @@ def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
 
 
 if __name__ == "__main__":
-    x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_valid_set(is_mul=True, random_state=108)
+    is_mul = True
+    stf_K_fold = StratifiedKFold(n_splits=5)
+    X, Y = PreProcessing.gen_X_Y(is_mul=is_mul)
+    x_train, x_valid, y_train, y_valid = [],[],[],[]
+    for train_idx, valid_idx in stf_K_fold.split(X, Y):
+        print("TRAIN:", train_idx, "TEST:", valid_idx)
+        x_train, x_valid = X[train_idx], X[valid_idx]
+        y_train, y_valid = Y[train_idx], Y[valid_idx]
+        break
+    # x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_valid_set(is_mul=True, random_state=108)
 
     # Data augmentation.
     train_transform = transforms.Compose([
@@ -378,7 +389,7 @@ if __name__ == "__main__":
         transforms.RandomHorizontalFlip(),
         transforms.RandomVerticalFlip(),
         transforms.RandomRotation(45),
-        transforms.ColorJitter(brightness=0.5, contrast=0.5, hue=0.5),
+        transforms.ColorJitter(brightness=0.5, contrast=0.5),
         transforms.ToTensor(),
         transforms.Normalize(0.188, 0.198)
     ])

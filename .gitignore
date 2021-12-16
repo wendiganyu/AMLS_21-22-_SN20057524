@@ -4,3 +4,5 @@
 /runs/
 /test/
 *.pyc
+/__pycache__/
+/.idea/

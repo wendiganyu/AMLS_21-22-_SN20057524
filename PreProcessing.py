@@ -126,30 +126,6 @@ def gen_test_X_Y(is_mul, data_dir="test/image", label_path="test/label.csv"):
 
     return X, Y
 
-
-
-def standardization(X):
-    """
-    Perform Z-score standardization to input data. x' = (x - μ)／σ. Row by row.
-
-    Inputs
-        X: Input data as a form of numpy matrix. Each row represents one data element.
-
-    Return
-        Data after standardization.
-    """
-    mu = np.mean(X, axis=1)
-    sigma = np.std(X, axis=1)
-    return (X - np.vstack(mu)) / np.vstack(sigma)
-
-def BinaryImage(X):
-    X = np.array(X)
-    X[X < 140] = 0
-    X[X >= 140] = 1
-    return X
-
-
-
 if __name__ == '__main__':
     np.set_printoptions(threshold=np.inf)  # Print all elements in numpy matrices.
     X, Y = gen_test_X_Y(is_mul=False)
