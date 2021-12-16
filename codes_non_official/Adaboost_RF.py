@@ -24,20 +24,10 @@ def Adaboost_Classifier(x_train, x_valid, y_train, y_valid):
     """
     # Create NB object with a K coefficient
 
-
-    # rf_model_name = "tmp/" + "rf_randomState" + str(random_state) + ".pkl"
-    # if os.path.exists(rf_model_name):
-    #     print("Yes you are loading rf model from saved pickle file!")
-    #     rf = pk.load(open(rf_model_name, 'rb'))
-    # else:
     clf = AdaBoostClassifier(
         DecisionTreeClassifier(max_depth=1), algorithm="SAMME", n_estimators=2000
     )
     clf.fit(x_train, y_train)  # Fit NB model
-
-    # Save the trained PCA model to a file.
-    # Set protocol=4 to be able to save large pickle files.
-    # pk.dump(rf, open(rf_model_name, "wb"), protocol=4)
 
     y_pred = clf.predict(x_valid)
 
@@ -48,20 +38,6 @@ def Adaboost_Classifier(x_train, x_valid, y_train, y_valid):
     return accu, y_pred
 
 if __name__ == '__main__':
-    # random_state = 108
-    # x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_test_set(is_mul=False, random_state=108)
-    #
-    # # x_train = PreProcessing.standardization(x_train)
-    # # x_valid = PreProcessing.standardization(x_valid)
-    #
-    # score, x_train_reduced, x_valid_reduced = RF_Classifier_and_Reducer(x_train, x_valid, y_train, y_valid,
-    #                                                                     random_state=random_state)
-    #
-    # print(x_train_reduced.shape)
-    # print(x_train_reduced)
-    # print(x_valid_reduced.shape)
-    # print(x_valid_reduced)
-
     # --------------------------------------------------------------------------------------------------------
     # Create Stratified K-Fold model.
     stf_K_fold = StratifiedKFold(n_splits=5)

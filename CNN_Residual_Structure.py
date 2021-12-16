@@ -2,6 +2,7 @@
 This file realise the Convolutional Neural Network deep learning classification model with the help of PyTorch.
 CNN is used in binary and multiple classification tasks of MRI images.
 """
+import argparse
 import os.path
 import torch
 import torch.nn as nn
@@ -12,18 +13,19 @@ import torchvision.transforms as transforms
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
+from tqdm.auto import tqdm  # Progress bar in training progress
+import PreProcessing
+
+# Optional packages for saving images after data augmentation in the training process.
+'''
 from torch.utils.tensorboard import SummaryWriter
-from tqdm.auto import tqdm  # Progress bar
+'''
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Construct dataset.
-
+# Tran dataset.
 
 # Fit our dataset as the form of numpy matrix with torch's DataLoader.
 # To inherit torch's Dataset method in a new class, we must overwrite __getitem__()和__len__() methods.
-import PreProcessing
-
-
 class GetTorchData(torch.utils.data.Dataset):
     def __init__(self, data, label, transform):
         """
@@ -236,8 +238,6 @@ def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
             # Each batch in torch consists of data and labels.
             data, labels = batch
 
-
-
             # Save some image samples in training process.
             # if (epoch % 100 == 0):
             #     grid = torchvision.utils.make_grid(data)
@@ -372,16 +372,25 @@ def train_valid_model(train_loader, valid_loader, epoch_num, is_mul):
 
 
 if __name__ == "__main__":
-    is_mul = True
+    # Get params from command lines.
+    p = argparse.ArgumentParser()
+    p.add_argument("--isMul", default=False, action="store_true")
+    p.add_argument("--epochNum", default=200, type=int)
+    args = p.parse_args()
+
+    # --------------------------------------------------------------------------------------------------
+
+    # Choose to train for binary task or multi-class task.
+    is_mul = args.isMul
     stf_K_fold = StratifiedKFold(n_splits=5)
     X, Y = PreProcessing.gen_X_Y(is_mul=is_mul)
-    x_train, x_valid, y_train, y_valid = [],[],[],[]
+    x_train, x_valid, y_train, y_valid = [], [], [], []
+    # Acquire the train and valid sets.
     for train_idx, valid_idx in stf_K_fold.split(X, Y):
-        print("TRAIN:", train_idx, "TEST:", valid_idx)
+        # print("TRAIN:", train_idx, "TEST:", valid_idx)
         x_train, x_valid = X[train_idx], X[valid_idx]
         y_train, y_valid = Y[train_idx], Y[valid_idx]
         break
-    # x_train, x_valid, y_train, y_valid = PreProcessing.gen_train_valid_set(is_mul=True, random_state=108)
 
     # Data augmentation.
     train_transform = transforms.Compose([
@@ -409,6 +418,6 @@ if __name__ == "__main__":
 
     torch_train_loader = GetTorchDataLoader(torch_train_data, batch_size)
     torch_valid_loader = GetTorchDataLoader(torch_valid_data, batch_size)
-    epoch_num = 300
+    epoch_num = args.epochNum
 
-    train_valid_model(torch_train_loader, torch_valid_loader, epoch_num, is_mul=True)
+    train_valid_model(torch_train_loader, torch_valid_loader, epoch_num, is_mul=is_mul)

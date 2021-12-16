@@ -1,3 +1,5 @@
+import argparse
+
 import torch
 
 import CNN_Residual_Structure
@@ -56,15 +58,14 @@ def CNN_Test(PATH, is_mul):
 
 
 if __name__ == '__main__':
-    is_mul = True
+    # Get params from command lines.
+    p = argparse.ArgumentParser()
+    p.add_argument("--isMul", default=False, action="store_true")
+    p.add_argument("--PATH", default="Please input the path of model state file.")
+    args = p.parse_args()
 
-    for i in [1,2,3,4,5,6,7,8,9]:
-        PATH_Mul = "model_states_tmp/Multiple/model_states_epoch19"+str(i)
-        CNN_Test(PATH_Mul, is_mul)
+    #----------------------------------------------------------------------------------------------------
+    is_mul = args.isMul
 
-    PATH_Mul = "model_states_tmp/Multiple/model_states_epoch200"
-    CNN_Test(PATH_Mul, is_mul)
-
-    # PATH_Binary = "model_states_tmp/Binary/model_states_epoch200"
-    # is_mul = False
-    # CNN_Test(PATH_Binary, is_mul)
+    PATH = args.PATH
+    CNN_Test(PATH, is_mul)

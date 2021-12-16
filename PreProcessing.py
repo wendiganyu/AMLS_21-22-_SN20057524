@@ -2,7 +2,9 @@ import os
 import cv2
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
+
+
+# from sklearn.model_selection import train_test_split
 
 def gen_mri_mtx_with_label(data_dir, label_path, is_mul):
     """
@@ -76,6 +78,28 @@ def gen_X_Y(is_mul, data_dir="dataset/image", label_path="dataset/label.csv"):
     return X, Y
 
 
+def gen_test_X_Y(is_mul, data_dir="test/image", label_path="test/label.csv"):
+    if is_mul:
+        mtx_file_name = "tmp/test_MRI_Matrix_Mul.npy"
+    else:
+        mtx_file_name = "tmp/test_MRI_Matrix_Binary.npy"
+
+    if os.path.exists(mtx_file_name):
+        mri_mtx = np.load(mtx_file_name)
+    else:
+        mri_mtx = gen_mri_mtx_with_label(data_dir, label_path, is_mul=is_mul)
+        os.makedirs('tmp/', exist_ok=True)
+        np.save(mtx_file_name, mri_mtx)
+
+    # Split X and Y.
+    Y = mri_mtx[:, -1]
+    X = np.delete(mri_mtx, 262144, 1)
+
+    return X, Y
+
+
+'''
+# This function is other way to split the dataset, but it was not used in official implementation.
 def gen_train_valid_set(is_mul, random_state=108, test_size=0.2):
     """
     Generate the train set and test set.
@@ -106,27 +130,4 @@ def gen_train_valid_set(is_mul, random_state=108, test_size=0.2):
     x_train, x_valid, y_train, y_valid = train_test_split(X, Y, test_size=test_size, random_state=random_state)
 
     return x_train, x_valid, y_train, y_valid
-
-def gen_test_X_Y(is_mul, data_dir="test/image", label_path="test/label.csv"):
-    if is_mul:
-        mtx_file_name = "tmp/test_MRI_Matrix_Mul.npy"
-    else:
-        mtx_file_name = "tmp/test_MRI_Matrix_Binary.npy"
-
-    if os.path.exists(mtx_file_name):
-        mri_mtx = np.load(mtx_file_name)
-    else:
-        mri_mtx = gen_mri_mtx_with_label(data_dir, label_path, is_mul=is_mul)
-        os.makedirs('tmp/', exist_ok=True)
-        np.save(mtx_file_name, mri_mtx)
-
-    # Split X and Y.
-    Y = mri_mtx[:, -1]
-    X = np.delete(mri_mtx, 262144, 1)
-
-    return X, Y
-
-if __name__ == '__main__':
-    np.set_printoptions(threshold=np.inf)  # Print all elements in numpy matrices.
-    X, Y = gen_test_X_Y(is_mul=False)
-    print(Y)
+'''

@@ -1,75 +1,101 @@
 import numpy as np
-from matplotlib import pyplot as plt
 from sklearn import metrics
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.feature_selection import SelectFromModel
 from sklearn.model_selection import cross_val_score, StratifiedKFold
-
 import PreProcessing
-from sklearn import tree
+import argparse
+
+'''
+#Optional packages for plotting trees.
 import graphviz
 from numpy import random
-
+from matplotlib import pyplot as plt
 import os
+'''
 
-os.environ["PATH"] += os.pathsep + "D:/Graphviz/bin/"
+
+# Below command is used to fix the bug when generating visualized tree in RF.
+# os.environ["PATH"] += os.pathsep + "D:/Graphviz/bin/"
 
 
-def RF_Classifier(x_train, x_valid, y_train, y_valid, n_estimators):
+def RF_Classifier(x_train, x_valid_test, y_train, y_valid_test, n_estimators):
     """
-    First take the train data set and valid data set as inputs.
-    Then classify them binary with kNN. Print the information related to classification accuracy.
+    First take the training set, and valid or test set as inputs.
+    Then classify them binary with RF. Print the information related to classification accuracy.
 
     Inputs:
         x_train: Preprocessed brain MRI images as inputs to train a model.
         y_train: Label information of x_train as inputs to train a model.
-        x_valid: Preprocessed brain MRI images to validate the classification accuracy of the trained model.
-                    The preprocessing of x_valid set cannot use any information of x_train or y_train.
-        y_valid: Label information of x_valid validate the classification accuracy of the trained model.
-        k: Number of neighbors.
+        x_valid_test: Preprocessed brain MRI images to validate or test the classification accuracy of the trained model.
+                    The preprocessing of valid or test sets cannot use any information of x_train or y_train.
+        y_valid: Label information of valid or test sets to calculate the classification accuracy of the trained model.
 
+    Outputs:
+        accu: Accuracy of the model on valid or test set.
+        y_pred: Predicted labels on valid or test set.
     """
-
+    # Create RF classifier.
     rf = RandomForestClassifier(n_estimators=n_estimators, random_state=0)
     rf.fit(x_train, y_train)  # Fit RF model
 
     # Plot one of the decision tree
+    # text format
     # text_representation = tree.export_text(rf.estimators_[1])
     # print(text_representation)
 
-    # x = random.randint(100)
+    # image format
+    # seed = random.randint(100)
     # dot_data = tree.export_graphviz(rf.estimators_[x])
     # graph = graphviz.Source(dot_data)
-    # graph.render("DecisionTree_"+str(x))
+    # graph.render("DecisionTree_"+str(seed))
 
-    y_pred = rf.predict(x_valid)
+    # Make prediction.
+    y_pred = rf.predict(x_valid_test)
 
-    report = metrics.classification_report(y_valid, y_pred)
+    # Print results.
+    report = metrics.classification_report(y_valid_test, y_pred)
     print("Random Forest classification report:\n " + report)
-    accu = metrics.accuracy_score(y_valid, y_pred)
+    accu = metrics.accuracy_score(y_valid_test, y_pred)
     print("Random Forest classification accuracy: " + str(accu))
 
     return accu, y_pred
 
 
 if __name__ == '__main__':
-    is_mul = True
+    # Get params from command lines.
+    p = argparse.ArgumentParser()
+    p.add_argument("--isTest", default=False, action="store_true")
+    args = p.parse_args()
+
+    # --------------------------------------------------------------------------------------------------
+    is_mul = False
     stf_K_fold = StratifiedKFold(n_splits=5)
     X, Y = PreProcessing.gen_X_Y(is_mul=is_mul)
-    x_test, y_test = PreProcessing.gen_test_X_Y(is_mul=is_mul)
+    if args.isTest:
+        # Run the RF classifier on test set.
+        x_test, y_test = PreProcessing.gen_test_X_Y(is_mul=is_mul)
+
     scores = []
     for train_idx, valid_idx in stf_K_fold.split(X, Y):
         # print("TRAIN:", train_idx, "TEST:", valid_idx)
-        x_train, _ = X[train_idx], X[valid_idx]
-        y_train, _ = Y[train_idx], Y[valid_idx]
+        x_train, x_valid = X[train_idx], X[valid_idx]
+        y_train, y_valid = Y[train_idx], Y[valid_idx]
 
-        score, _ = RF_Classifier(x_train, x_test, y_train, y_test, n_estimators=650)
-        # RF_Classifier(x_train, x_test, y_train, y_test, n_estimators=650)
+        if args.isTest:
+            # Train with training set and predict on test set.
+            score, _ = RF_Classifier(x_train, x_test, y_train, y_test, n_estimators=650)
+        else:
+            # Train with training set and predict on valid sets.
+            score, _ = RF_Classifier(x_train, x_valid, y_train, y_valid, n_estimators=650)
+
         scores.append(score)
-    print(scores)
+
+    print("Accuracies of 5 RF classifiers using stratified 5-fold: "+scores)
     avg_accu = np.array(scores).mean()
     std = np.array(scores).std()
-    #
-    print("RF with 5-fold stratified cross validation: %0.5f accuracy with a standard deviation of %0.5f" % (avg_accu, std))
 
-    # x_train, _, y_train, _ = PreProcessing.gen_train_valid_set(is_mul=False)
+    print("RF with 5-fold stratified cross validation: %0.5f average accuracy with a standard deviation of %0.5f" % (
+        str(avg_accu), str(std)))
+
+
+
