@@ -7,7 +7,7 @@ import PreProcessing
 def LR_Classifier(x_train, x_valid, y_train, y_valid):
     """
     First take the train data set and valid data set as inputs.
-    Then classify them binary with kNN. Print the information related to classification accuracy.
+    Then classify them binary with LR. Print the information related to classification accuracy.
 
     Inputs:
         x_train: Preprocessed brain MRI images as inputs to train a model.
@@ -15,10 +15,10 @@ def LR_Classifier(x_train, x_valid, y_train, y_valid):
         x_valid: Preprocessed brain MRI images to validate the classification accuracy of the trained model.
                     The preprocessing of x_valid set cannot use any information of x_train or y_train.
         y_valid: Label information of x_valid validate the classification accuracy of the trained model.
-        k: Number of neighbors.
+
 
     """
-    # Create NB object with a K coefficient
+    # Create LR object with a K coefficient
     clf = LogisticRegression(max_iter=10000, random_state=0)
     clf.fit(x_train, y_train)  # Fit NB model
 

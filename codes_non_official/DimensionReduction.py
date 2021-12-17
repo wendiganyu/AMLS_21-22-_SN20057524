@@ -19,8 +19,7 @@ def PCAFeatureExtraction(x_train, x_valid, k):
         x_train: training set without label information.
         x_valid: valid set without label information.
         k: number of components.
-        random_state: random state value when used to split x_train and x_valid. This is
-                        used in this function to generate the model's pickle file name.
+
 
     Return
         x_train_pca: reduced training set after PCA. This data varies with the changing of input k value.

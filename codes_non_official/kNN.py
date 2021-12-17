@@ -18,6 +18,10 @@ def kNNClassifier(x_train, x_valid, y_train, y_valid, k):
         y_valid: Label information of x_valid validate the classification accuracy of the trained model.
         k: Number of neighbors.
 
+    Outputs:
+        accu: Accuracy of the model on valid or test set.
+        y_pred: Predicted labels on valid or test set.
+
     """
     # Create KNN object with a K coefficient
     neigh = KNeighborsClassifier(n_neighbors=k)
@@ -27,9 +31,9 @@ def kNNClassifier(x_train, x_valid, y_train, y_valid, k):
 
     report = metrics.classification_report(y_valid, y_pred)
     print("kNN classification report:\n " + report)
-    score = metrics.accuracy_score(y_valid, y_pred)
-    print("kNN accuracy with number of neighbors k=" + str(k) + ":" + str(score * 100) + "%")
-    return score, y_pred
+    accu = metrics.accuracy_score(y_valid, y_pred)
+    print("kNN accuracy with number of neighbors k=" + str(k) + ":" + str(accu * 100) + "%")
+    return accu, y_pred
 
 
 # if __name__ == '__main__':

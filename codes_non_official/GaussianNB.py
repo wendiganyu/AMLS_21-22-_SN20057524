@@ -9,17 +9,19 @@ import PreProcessing
 
 def NBClassifier(x_train, x_valid, y_train, y_valid):
     """
-    First take the train data set and valid data set as inputs.
-    Then classify them binary with kNN. Print the information related to classification accuracy.
+    First take the training set, and valid or test set as inputs.
+    Then classify them binary with NB. Print the information related to classification accuracy.
 
     Inputs:
         x_train: Preprocessed brain MRI images as inputs to train a model.
         y_train: Label information of x_train as inputs to train a model.
-        x_valid: Preprocessed brain MRI images to validate the classification accuracy of the trained model.
-                    The preprocessing of x_valid set cannot use any information of x_train or y_train.
-        y_valid: Label information of x_valid validate the classification accuracy of the trained model.
-        k: Number of neighbors.
+        x_valid_test: Preprocessed brain MRI images to validate or test the classification accuracy of the trained model.
+                    The preprocessing of valid or test sets cannot use any information of x_train or y_train.
+        y_valid: Label information of valid or test sets to calculate the classification accuracy of the trained model.
 
+    Outputs:
+        accu: Accuracy of the model on valid or test set.
+        y_pred: Predicted labels on valid or test set.
     """
     # Create NB object with a K coefficient
     nb_clf = GaussianNB()
@@ -27,9 +29,9 @@ def NBClassifier(x_train, x_valid, y_train, y_valid):
 
     y_pred = nb_clf.predict(x_valid)
 
-    score = metrics.accuracy_score(y_valid, y_pred)
-    print("Gaussian Naive Bayes classifier accuracy: " + str(score))
-    return score
+    accu = metrics.accuracy_score(y_valid, y_pred)
+    print("Gaussian Naive Bayes classifier accuracy: " + str(accu))
+    return accu, y_pred
 
 
 if __name__ == '__main__':
