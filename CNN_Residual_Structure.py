@@ -406,10 +406,10 @@ if __name__ == "__main__":
     # Data augmentation.
     train_transform = transforms.Compose([
         transforms.ToPILImage(),
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomVerticalFlip(),
-        transforms.RandomRotation(45),
-        transforms.ColorJitter(brightness=0.5, contrast=0.5),
+        # transforms.RandomHorizontalFlip(),
+        # transforms.RandomVerticalFlip(),
+        # transforms.RandomRotation(45),
+        # transforms.ColorJitter(brightness=0.5, contrast=0.5),
         transforms.ToTensor(),
         transforms.Normalize(0.188, 0.198)
     ])
